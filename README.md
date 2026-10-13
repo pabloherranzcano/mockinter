@@ -2,14 +2,16 @@
 
 Lecciones de 5 minutos para preparar entrevistas técnicas (Angular, React, Cloud/DevOps y Backend Java/Spring), con rachas, XP, vidas, corrección de respuestas abiertas con IA y un panel de admin para mantener las preguntas.
 
-**Stack:** Angular 21 (standalone, signals, zoneless) · Supabase (Postgres, Auth, Edge Functions) · API de Claude · Vercel.
+**Stack:** React 19 + TypeScript · Vite · React Router · TanStack Query · Supabase (Postgres, Auth, Edge Functions) · API de Claude · Vercel.
+
+> La primera versión del frontend se hizo en Angular; sigue en el historial de git (primeros commits).
 
 ---
 
 ## Cómo funciona
 
 ```
-Usuario ──► App Angular (Vercel) ──► Supabase
+Usuario ──► App React (Vercel) ──► Supabase
                                       ├─ Auth (email/contraseña, Google)
                                       ├─ Postgres con Row Level Security
                                       │    topics, questions, profiles, progress,
@@ -42,7 +44,7 @@ Necesitas: Node 22.12 o superior, Python 3, y cuentas en GitHub, [Supabase](http
 
 En **Authentication → URL Configuration**:
 - **Site URL:** la URL de tu web, por ejemplo `https://mockinter.dev` (o tu dominio).
-- **Redirect URLs:** añade esa misma URL y `http://localhost:4200` para desarrollar.
+- **Redirect URLs:** añade esa misma URL y `http://localhost:5173` para desarrollar.
 
 En **Authentication → Providers**:
 - **Email** viene activado. Deja activada la confirmación de email.
@@ -77,19 +79,19 @@ La clave nunca llega al navegador. Si la función falla o el usuario agota su l�
 
 ### 5. Conecta la app con Supabase
 
-Edita `src/environments/environment.ts` con los datos de **Project Settings → API**:
+Copia `.env.example` como `.env` y rellénalo con los datos de **Project Settings → API**:
 
-```ts
-supabaseUrl: 'https://xxxx.supabase.co',
-supabaseAnonKey: 'eyJ...',            // la clave "anon" / "publishable": es pública por diseño
-contactEmail: 'tu-email@ejemplo.com', // aparece en la política de privacidad
+```bash
+VITE_SUPABASE_URL=https://xxxx.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJ...            # la clave "anon" / "publishable": es pública por diseño
+VITE_CONTACT_EMAIL=tu-email@ejemplo.com  # aparece en la política de privacidad
 ```
 
-Pruébala en local:
+`.env` no se sube a git. Pruébala en local:
 
 ```bash
 npm install
-npm start          # http://localhost:4200
+npm run dev        # http://localhost:5173
 ```
 
 ### 6. Publica en internet
@@ -99,13 +101,13 @@ npm start          # http://localhost:4200
    git remote add origin https://github.com/TU-USUARIO/mockinter.git
    git push -u origin main
    ```
-2. En Vercel: **Add New → Project**, importa el repositorio y pulsa **Deploy**. `vercel.json` ya indica el comando de build y la carpeta de salida.
+2. En Vercel: **Add New → Project** e importa el repositorio. Antes de pulsar **Deploy**, añade en **Environment Variables** las tres variables de tu `.env` (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_CONTACT_EMAIL`). `vercel.json` ya indica el comando de build y la carpeta de salida.
 3. Copia la URL que te da Vercel en **Site URL** y **Redirect URLs** de Supabase (paso 2).
 4. **Dominio propio** (opcional): cómpralo en cualquier registrador y añádelo en Vercel → Settings → Domains. Recuerda actualizar también las URLs en Supabase.
 
 A partir de aquí, cada `git push` a `main` despliega solo, y cada pull request genera una URL de prueba.
 
-> **Netlify o Cloudflare Pages** también sirven: comando `npm run build`, carpeta `dist/mockinter/browser`. El archivo `public/_redirects` ya está incluido para Netlify.
+> **Netlify o Cloudflare Pages** también sirven: comando `npm run build`, carpeta `dist`, y las mismas variables de entorno. El archivo `public/_redirects` ya está incluido para Netlify.
 
 ---
 
@@ -124,7 +126,7 @@ En **Admin → Preguntas** puedes filtrar por puesto, tema, nivel o estado, **oc
 
 ## Antes de lanzar: lista de comprobación
 
-- [ ] Completa los `[CORCHETES]` de `src/app/pages/privacy.ts` (tu nombre, fecha, proveedores y regiones).
+- [ ] Completa los `[CORCHETES]` de `src/pages/Privacy.tsx` (tu nombre, fecha, proveedores y regiones).
 - [ ] SMTP propio configurado en Supabase.
 - [ ] Límite de gasto en la consola de Anthropic y `DAILY_GRADING_LIMIT` ajustado.
 - [ ] Rellena la columna **Respuesta modelo (ES)** del Excel para quien tenga la entrevista en español. Si está vacía, se le muestra la inglesa.
@@ -136,20 +138,23 @@ En **Admin → Preguntas** puedes filtrar por puesto, tema, nivel o estado, **oc
 ## Desarrollo
 
 ```bash
-npm start          # servidor de desarrollo
-npm test           # tests unitarios (Vitest)
+npm run dev        # servidor de desarrollo
+npm test           # tests unitarios (Vitest + Testing Library)
 npm run test:db    # esquema y reglas de seguridad en un Postgres en memoria
-npm run build      # build de producción en dist/mockinter/browser
+npm run build      # comprobación de tipos y build de producción en dist/
 ```
 
 ### Estructura
 
 ```
-src/app/
-  core/        servicios (auth, contenido), modelos y guards
+src/
+  App.tsx      rutas (React Router) con carga diferida
+  auth/        AuthProvider (contexto de sesión y perfil) y rutas protegidas
+  lib/         cliente de Supabase, funciones de la API, modelos y utilidades
   pages/       login, onboarding, inicio, lección, ajustes, privacidad
+               lessonReducer.ts: la lógica de la lección como reducer puro, con sus tests
   admin/       panel: reportes, lista de preguntas, editor
-  shared/      logo, diálogo de reporte, texto con `código`
+  components/  logo, diálogo de reporte, texto con `código`
 supabase/
   migrations/  esquema, reglas de acceso (RLS) y funciones SQL
   functions/   grade: corrección con la API de Claude
@@ -159,7 +164,15 @@ scripts/
   test-db.mjs     pruebas de la base de datos
 ```
 
-### Cómo se decide qué ve cada usuario
+#### Decisiones técnicas (útiles para explicarlas en una entrevista)
+
+- **TanStack Query** gestiona los datos del servidor: caché, estados de carga y error, e invalidación tras guardar. El interruptor de visible/oculta usa una actualización optimista.
+- **La lógica de la lección es un reducer puro** (`lessonReducer.ts`), sin React ni red. La pantalla solo despacha acciones, y la lógica se testea aislada.
+- **El estado de sesión vive en un contexto** (`AuthProvider`), y las rutas protegidas son componentes que redirigen (`RequireAuth`, `RequireAdmin`…).
+- **Las pantallas se cargan bajo demanda** con `React.lazy`, y las librerías grandes van en chunks separados.
+- **La seguridad está en la base de datos** (RLS), no en el frontend. El panel de admin oculto es solo comodidad.
+
+## Cómo se decide qué ve cada usuario
 
 - **Onboarding:** puesto (Angular, React, Cloud/DevOps, Backend), nivel (Junior, Mid, Senior) e idioma de la entrevista. Se puede cambiar desde Ajustes.
 - **Camino de lecciones:** "Presentación y STAR", luego los 6 temas del puesto, después "Preguntas difíciles" e "Inglés de entrevista". Este último se oculta si la entrevista es en español.

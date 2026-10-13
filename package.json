@@ -1,39 +1,39 @@
 {
   "name": "mockinter",
-  "version": "0.0.0",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "engines": {
+    "node": ">=22.12"
+  },
   "scripts": {
-    "ng": "ng",
-    "start": "ng serve",
-    "build": "ng build",
-    "watch": "ng build --watch --configuration development",
-    "test": "ng test",
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "test:db": "node scripts/test-db.mjs",
     "import": "python3 scripts/import_xlsx.py"
   },
-  "private": true,
-  "packageManager": "npm@10.9.4",
   "dependencies": {
-    "@angular/common": "^21.2.0",
-    "@angular/compiler": "^21.2.0",
-    "@angular/core": "^21.2.0",
-    "@angular/forms": "^21.2.0",
-    "@angular/platform-browser": "^21.2.0",
-    "@angular/router": "^21.2.0",
     "@supabase/supabase-js": "^2.117.3",
-    "rxjs": "~7.8.0",
-    "tslib": "^2.3.0"
+    "@tanstack/react-query": "^5.90.21",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "react-router": "^7.18.4"
   },
   "devDependencies": {
-    "@angular/build": "^21.2.26",
-    "@angular/cli": "^21.2.26",
-    "@angular/compiler-cli": "^21.2.0",
-    "@electric-sql/pglite": "^0.5.9",
-    "jsdom": "^28.0.0",
-    "prettier": "^3.8.1",
-    "typescript": "~5.9.2",
-    "vitest": "^4.0.8"
-  },
-  "engines": {
-    "node": ">=22.12"
+    "@electric-sql/pglite": "0.5.9",
+    "@testing-library/dom": "^10.4.2",
+    "@testing-library/jest-dom": "^6.10.0",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "14.6.1",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.7",
+    "@vitejs/plugin-react": "^5.2.0",
+    "jsdom": "^27.4.0",
+    "typescript": "~5.9.3",
+    "vite": "^7.3.7",
+    "vitest": "^4.0.18"
   }
 }
