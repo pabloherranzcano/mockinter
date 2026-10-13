@@ -14,8 +14,8 @@ const AdminQuestions = lazy(() => import('./admin/AdminQuestions'));
 const QuestionEditor = lazy(() => import('./admin/QuestionEditor'));
 
 const TITLES: [RegExp, string][] = [
-  [/^\/entrar/, 'Entrar'], [/^\/privacidad/, 'Privacidad'], [/^\/empezar/, 'Tu preparación'],
-  [/^\/ajustes/, 'Ajustes'], [/^\/leccion/, 'Lección'], [/^\/repaso/, 'Repaso'], [/^\/admin/, 'Admin'],
+  [/^\/login/, 'Entrar'], [/^\/privacy/, 'Privacidad'], [/^\/onboarding/, 'Tu preparación'],
+  [/^\/settings/, 'Ajustes'], [/^\/lesson/, 'Lección'], [/^\/review/, 'Repaso'], [/^\/admin/, 'Admin'],
 ];
 
 function DocumentTitle() {
@@ -34,17 +34,17 @@ export function App() {
       <Suspense fallback={<main className="wrap"><p className="muted">Cargando…</p></main>}>
         <Routes>
           <Route element={<GuestOnly />}>
-            <Route path="/entrar" element={<Login />} />
+            <Route path="/login" element={<Login />} />
           </Route>
-          <Route path="/privacidad" element={<Privacy />} />
+          <Route path="/privacy" element={<Privacy />} />
           <Route element={<RequireAuth />}>
-            <Route path="/empezar" element={<Onboarding />} />
-            <Route path="/ajustes" element={<Settings />} />
+            <Route path="/onboarding" element={<Onboarding />} />
+            <Route path="/settings" element={<Settings />} />
           </Route>
           <Route element={<RequireOnboarded />}>
             <Route path="/" element={<Home />} />
-            <Route path="/leccion/:topicId" element={<Lesson />} />
-            <Route path="/repaso" element={<Lesson review />} />
+            <Route path="/lesson/:topicId" element={<Lesson />} />
+            <Route path="/review" element={<Lesson review />} />
           </Route>
           <Route element={<RequireAdmin />}>
             <Route path="/admin" element={<AdminLayout />}>
