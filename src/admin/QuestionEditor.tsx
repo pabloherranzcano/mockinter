@@ -60,6 +60,7 @@ export default function QuestionEditor() {
       const row: Question = {
         ...q,
         wrong: q.type === 'mc' || q.type === 'fill' ? q.wrong.map((w) => w.trim()).filter(Boolean) : [],
+        es_wrong: q.es_wrong?.map((w) => w.trim()).filter(Boolean).length ? q.es_wrong.map((w) => w.trim()).filter(Boolean) : null,
         correct: q.type === 'order'
           ? orderText.split('\n').map((l) => l.trim()).filter(Boolean).join(' | ')
           : q.type === 'open' ? null : q.correct?.trim() ?? null,
@@ -196,6 +197,30 @@ export default function QuestionEditor() {
                 </label>
               </div>
             </>
+          )}
+
+          {q.type !== 'open' && q.type !== 'order' && (
+            <details className="stack" open={!!(q.es_prompt || q.es_correct || q.es_wrong?.length || q.es_explanation)}>
+              <summary style={{ cursor: 'pointer', fontWeight: 700 }}>Variante para entrevistas en español (opcional)</summary>
+              <p className="muted small" style={{ margin: '8px 0' }}>
+                Rellénala solo si el enunciado, las opciones o la explicación tienen frases en inglés. Lo que dejes vacío usa la versión normal.
+              </p>
+              <div className="stack">
+                <label className="field">Pregunta en español
+                  <textarea id="ed-es-prompt" value={v(q.es_prompt)} onChange={(e) => patch({ es_prompt: e.target.value || null })} style={{ minHeight: 70 }} />
+                </label>
+                <label className="field">Respuesta correcta en español
+                  <input id="ed-es-correct" type="text" value={v(q.es_correct)} onChange={(e) => patch({ es_correct: e.target.value || null })} />
+                </label>
+                <label className="field">Incorrectas en español (una por línea)
+                  <textarea id="ed-es-wrong" value={(q.es_wrong ?? []).join('\n')} style={{ minHeight: 90 }}
+                    onChange={(e) => patch({ es_wrong: e.target.value.split('\n').some((l) => l.trim()) ? e.target.value.split('\n') : null })} />
+                </label>
+                <label className="field">Explicación en español
+                  <textarea id="ed-es-expl" value={v(q.es_explanation)} onChange={(e) => patch({ es_explanation: e.target.value || null })} />
+                </label>
+              </div>
+            </details>
           )}
 
           {error && <div className="error">{error}</div>}

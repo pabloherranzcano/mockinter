@@ -12,7 +12,7 @@ create function auth.uid() returns uuid language sql stable as $$ select nullif(
 create function auth.role() returns text language sql stable as $$ select coalesce(nullif(current_setting('request.jwt.claim.role', true), ''), 'service_role') $$;
 grant usage on schema auth to anon, authenticated;
 `);
-await db.exec(fs.readFileSync(R+'migrations/20261013000000_init.sql','utf8'));
+for (const f of fs.readdirSync(R+'migrations').sort()) await db.exec(fs.readFileSync(R+'migrations/'+f,'utf8'));
 await db.exec(`grant usage on schema public to anon, authenticated; grant all on all tables in schema public to anon, authenticated; grant all on all sequences in schema public to authenticated;`);
 await db.exec(fs.readFileSync(R+'seed.sql','utf8'));
 const U='11111111-1111-1111-1111-111111111111', A='22222222-2222-2222-2222-222222222222';
@@ -44,6 +44,8 @@ await t('wrong answers own', async()=> (await as(U,"insert into wrong_answers (q
 await blocked('user cannot call consume_grading', async()=> (await as(U,`select consume_grading('${U}',5)`)).rows);
 await t('service consume_grading', async()=> (await db.query(`select consume_grading('${U}',2) a, consume_grading('${U}',2) b, consume_grading('${U}',2) c`)).rows[0]);
 await t('grading_usage hidden', async()=> (await as(U,"select count(*) from grading_usage")).rows[0]);
+await t('spanish variant loaded', async()=> (await as(U,"select es_prompt, array_length(es_wrong,1) n from questions where id='COM-02-M2'")).rows[0]);
+await t('model_es loaded', async()=> (await db.query("select count(*) from questions where type='open' and model_es is not null")).rows[0]);
 await t('delete my account', async()=> { await as(U,"select delete_my_account()"); return (await db.query(`select count(*) from profiles where id='${U}'`)).rows[0]; });
 console.log(failed ? `\n${failed} comprobaciones fallidas` : '\nTodas las comprobaciones pasan');
 process.exit(failed ? 1 : 0);

@@ -32,13 +32,14 @@ Necesitas: Node 22.12 o superior, Python 3, y cuentas en GitHub, [Supabase](http
 ### 1. Base de datos en Supabase
 
 1. Crea un proyecto en Supabase. Elige una **región de la UE** (Frankfurt o París), porque tus usuarios están en España.
-2. Abre **SQL Editor** y ejecuta el contenido de `supabase/migrations/20261013000000_init.sql`.
+2. Abre **SQL Editor** y ejecuta, en orden, cada archivo de `supabase/migrations/` (primero `20261013000000_init.sql`, después `20261013170000_spanish_variants.sql`).
 3. Genera la carga de preguntas desde el Excel y ejecútala también en el SQL Editor:
    ```bash
    pip install openpyxl
    npm run import -- ruta/a/Temario_mockinter.xlsx      # crea supabase/seed.sql
    ```
    Copia el contenido de `supabase/seed.sql` en el SQL Editor y ejecútalo.
+   Puedes volver a ejecutar `seed.sql` cuando quieras: no duplica preguntas ni pisa lo que hayas editado desde el panel; solo rellena lo que falte (por ejemplo, el contenido en español).
 
 ### 2. Autenticación
 
@@ -129,7 +130,6 @@ En **Admin → Preguntas** puedes filtrar por puesto, tema, nivel o estado, **oc
 - [ ] Completa los `[CORCHETES]` de `src/pages/Privacy.tsx` (tu nombre, fecha, proveedores y regiones).
 - [ ] SMTP propio configurado en Supabase.
 - [ ] Límite de gasto en la consola de Anthropic y `DAILY_GRADING_LIMIT` ajustado.
-- [ ] Rellena la columna **Respuesta modelo (ES)** del Excel para quien tenga la entrevista en español. Si está vacía, se le muestra la inglesa.
 - [ ] Revisa las preguntas (Estado = Revisada) o, como mínimo, las de los temas que vayas a anunciar primero.
 - [ ] Prueba el flujo completo con una cuenta normal: registro, onboarding, lección, reporte y borrar cuenta.
 
@@ -175,6 +175,7 @@ scripts/
 ## Cómo se decide qué ve cada usuario
 
 - **Onboarding:** puesto (Angular, React, Cloud/DevOps, Backend), nivel (Junior, Mid, Senior) e idioma de la entrevista. Se puede cambiar desde Ajustes.
+- **Entrevista en español:** se oculta el bloque de inglés, las respuestas abiertas se escriben y corrigen en español, y las preguntas con frases en inglés usan su variante española (columnas *Variante ES* del Excel o sección plegable del editor).
 - **Camino de lecciones:** "Presentación y STAR", luego los 6 temas del puesto, después "Preguntas difíciles" e "Inglés de entrevista". Este último se oculta si la entrevista es en español.
 - **Cada lección:** las preguntas activas de ese tema y nivel. Primero las cerradas, barajadas, y la abierta al final. Cada fallo cuesta una vida y la pregunta vuelve al final de la cola.
 - **XP y racha:** se guardan en el servidor al terminar la lección, con la fecha de Madrid y un tope por lección.

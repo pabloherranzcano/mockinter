@@ -5,6 +5,7 @@ import { useAuth } from '../auth/AuthProvider';
 import { clearWrong, fetchLessonQuestions, fetchReviewQuestions, fetchTopic, finishLesson, gradeAnswer, markWrong } from '../lib/api';
 import type { Grade, Question } from '../lib/models';
 import { looksLikeCode } from '../lib/utils';
+import { localizeQuestion } from '../lib/localize';
 import { Rich } from '../components/Rich';
 import { ReportDialog } from '../components/ReportDialog';
 import { HEARTS, PASS_SCORE, accuracy, canCheck, initLesson, lessonReducer, starsFor, type LessonState } from './lessonReducer';
@@ -15,13 +16,14 @@ export default function Lesson({ review = false }: { review?: boolean }) {
   const { topicId = '' } = useParams();
   const { profile } = useAuth();
   const navigate = useNavigate();
+  const lang: 'en' | 'es' = profile?.english === 'no' ? 'es' : 'en';
 
   useEffect(() => { if (!profile?.level) navigate('/empezar', { replace: true }); }, [profile, navigate]);
 
   const topicQ = useQuery({ queryKey: ['topic', topicId], queryFn: () => fetchTopic(topicId), enabled: !review && !!topicId });
   const questionsQ = useQuery({
-    queryKey: review ? ['review'] : ['lesson', topicId, profile?.level],
-    queryFn: () => (review ? fetchReviewQuestions() : fetchLessonQuestions(topicId, profile!.level!)),
+    queryKey: review ? ['review', lang] : ['lesson', topicId, profile?.level],
+    queryFn: () => (review ? fetchReviewQuestions(lang) : fetchLessonQuestions(topicId, profile!.level!)),
     enabled: !!profile?.level,
     staleTime: 0,
     gcTime: 0,
@@ -31,7 +33,9 @@ export default function Lesson({ review = false }: { review?: boolean }) {
     if (questionsQ.isError) return <EmptyState review={review} error />;
     return <main className="wrap"><p className="muted">Preparando la lección…</p></main>;
   }
-  const playable = questionsQ.data.filter((q) => !(q.type === 'open' && !q.keys && !q.model_en && !q.model_es));
+  const playable = questionsQ.data
+    .filter((q) => !(q.type === 'open' && !q.keys && !q.model_en && !q.model_es))
+    .map((q) => localizeQuestion(q, lang));
   if (!playable.length) return <EmptyState review={review} />;
 
   return <LessonRunner key={questionsQ.dataUpdatedAt} questions={playable} review={review}

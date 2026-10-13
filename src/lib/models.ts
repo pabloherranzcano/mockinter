@@ -48,6 +48,11 @@ export interface Question {
   status: QStatus;
   active: boolean;
   updated_at?: string;
+  /** Variante para entrevistas en español (null = usar la normal). */
+  es_prompt?: string | null;
+  es_correct?: string | null;
+  es_wrong?: string[] | null;
+  es_explanation?: string | null;
 }
 
 export interface Report {

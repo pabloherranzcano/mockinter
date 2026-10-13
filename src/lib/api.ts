@@ -32,13 +32,17 @@ export async function fetchLessonQuestions(topicId: string, level: Level): Promi
   return data as Question[];
 }
 
-export async function fetchReviewQuestions(limit = 8): Promise<Question[]> {
+/** Preguntas falladas para repasar. Con entrevista en español se excluye el bloque de inglés. */
+export async function fetchReviewQuestions(lang: 'en' | 'es', limit = 8): Promise<Question[]> {
   const { data, error } = await supabase.from('wrong_answers')
-    .select('question_id, questions(*)').order('created_at', { ascending: false }).limit(40);
+    .select('question_id, questions(*, topics(is_english))').order('created_at', { ascending: false }).limit(40);
   if (error) throw error;
+  type Row = { questions: (Question & { topics?: { is_english: boolean } | null }) | null };
   const qs = (data ?? [])
-    .map((r) => (r as unknown as { questions: Question | null }).questions)
-    .filter((q): q is Question => !!q && q.active && q.type !== 'open');
+    .map((r) => (r as unknown as Row).questions)
+    .filter((q): q is Question & { topics?: { is_english: boolean } | null } =>
+      !!q && q.active && q.type !== 'open' && !(lang === 'es' && q.topics?.is_english))
+    .map(({ topics: _t, ...q }) => q as Question);
   return shuffle(qs).slice(0, limit);
 }
 

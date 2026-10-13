@@ -74,6 +74,9 @@ def main():
             say_es=col(r, "Traducción del ejemplo"), keys=col(r, "Puntos clave (abiertas)"),
             model_en=col(r, "Respuesta modelo (EN)"), model_es=col(r, "Respuesta modelo (ES)"),
             status=STATUS.get(col(r, "Estado"), "pending"), active=(col(r, "Activa") != "No"),
+            es_prompt=col(r, "Variante ES: pregunta"), es_correct=col(r, "Variante ES: correcta"),
+            es_wrong=[w.strip() for w in str(col(r, "Variante ES: incorrectas (separadas por |)") or "").split("|") if w.strip()],
+            es_explanation=col(r, "Variante ES: explicación"),
         ))
 
     out = ["-- Generado por scripts/import_xlsx.py desde " + src.name, "begin;"]
@@ -84,11 +87,19 @@ def main():
             f"on conflict (id) do update set role_name = excluded.role_name, name = excluded.name, "
             f"position = excluded.position, is_english = excluded.is_english;")
     cols = ["id", "topic_id", "level", "type", "prompt", "prompt_en", "correct", "wrong", "explanation",
-            "say_en", "say_es", "keys", "model_en", "model_es", "status", "active"]
+            "say_en", "say_es", "keys", "model_en", "model_es", "status", "active",
+            "es_prompt", "es_correct", "es_wrong", "es_explanation"]
     conflict = ("do update set " + ", ".join(f"{c} = excluded.{c}" for c in cols[1:])) if overwrite else "do nothing"
     for d in questions:
-        vals = [q(d[c]) if c not in ("wrong", "active") else (arr(d[c]) if c == "wrong" else ("true" if d[c] else "false")) for c in cols]
+        vals = [arr(d[c]) if c == "wrong" else ("null" if not d[c] else arr(d[c])) if c == "es_wrong"
+                else ("true" if d[c] else "false") if c == "active" else q(d[c]) for c in cols]
         out.append(f"insert into public.questions ({', '.join(cols)}) values ({', '.join(vals)}) on conflict (id) {conflict};")
+    # Contenido en español: se rellena aunque la pregunta ya exista, sin pisar lo que hayas escrito a mano
+    for d in questions:
+        sets = [f"{c} = coalesce({c}, {q(d[c]) if c != 'es_wrong' else ('null' if not d[c] else arr(d[c]))})"
+                for c in ("model_es", "es_prompt", "es_correct", "es_wrong", "es_explanation") if d[c]]
+        if sets:
+            out.append(f"update public.questions set {', '.join(sets)} where id = {q(d['id'])};")
     out.append("commit;")
 
     dest = Path(__file__).resolve().parent.parent / "supabase" / "seed.sql"
