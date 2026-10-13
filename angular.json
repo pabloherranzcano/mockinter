@@ -6,7 +6,7 @@
   },
   "newProjectRoot": "projects",
   "projects": {
-    "racha": {
+    "mockinter": {
       "projectType": "application",
       "schematics": {},
       "root": "",
@@ -64,10 +64,10 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "racha:build:production"
+              "buildTarget": "mockinter:build:production"
             },
             "development": {
-              "buildTarget": "racha:build:development"
+              "buildTarget": "mockinter:build:development"
             }
           },
           "defaultConfiguration": "development"

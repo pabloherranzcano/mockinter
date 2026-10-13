@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-Convierte Temario_Racha.xlsx en un archivo SQL para cargar las preguntas en Supabase.
+Convierte Temario_mockinter.xlsx en un archivo SQL para cargar las preguntas en Supabase.
 
 Uso:
     pip install openpyxl
-    python scripts/import_xlsx.py Temario_Racha.xlsx                 # genera supabase/seed.sql
-    python scripts/import_xlsx.py Temario_Racha.xlsx --overwrite     # sobrescribe preguntas existentes
+    python scripts/import_xlsx.py Temario_mockinter.xlsx                 # genera supabase/seed.sql
+    python scripts/import_xlsx.py Temario_mockinter.xlsx --overwrite     # sobrescribe preguntas existentes
 
 Por defecto las preguntas que ya existen en la base de datos NO se tocan, para no pisar
 lo que hayas cambiado desde el panel de admin. Con --overwrite, el Excel manda.

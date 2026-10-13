@@ -14,7 +14,7 @@ import { Logo } from '../shared/logo';
     <p class="muted small">Última actualización: [FECHA]</p>
 
     <h2>Quién es el responsable</h2>
-    <p>[TU NOMBRE COMPLETO], con contacto en <strong>{{ email }}</strong>, es responsable del tratamiento de los datos de Racha.</p>
+    <p>[TU NOMBRE COMPLETO], con contacto en <strong>{{ email }}</strong>, es responsable del tratamiento de los datos de mockinter.dev.</p>
 
     <h2>Qué datos guardamos</h2>
     <ul>
@@ -41,7 +41,7 @@ import { Logo } from '../shared/logo';
     <p>Puedes acceder, rectificar, suprimir, oponerte, limitar el tratamiento y pedir la portabilidad escribiendo a <strong>{{ email }}</strong>. También puedes reclamar ante la Agencia Española de Protección de Datos (aepd.es).</p>
 
     <h2>Cookies</h2>
-    <p>Racha solo usa almacenamiento técnico necesario para mantener tu sesión iniciada. No usamos cookies de analítica ni de publicidad.</p>
+    <p>mockinter.dev solo usa almacenamiento técnico necesario para mantener tu sesión iniciada. No usamos cookies de analítica ni de publicidad.</p>
   </main>`,
 })
 export class PrivacyPage {

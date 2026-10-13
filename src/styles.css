@@ -1,4 +1,4 @@
-/* Racha — estilos globales.
+/* mockinter.dev — estilos globales.
    Layout: una columna estrecha para la app; ancho completo para el panel de admin. */
 :root {
   --bg: #EDF0F6; --surface: #FFFFFF; --sunk: #E2E7F0; --ink: #152238; --muted: #5A6680; --line: #D3DAE6;
@@ -67,7 +67,8 @@ input:focus, select:focus, textarea:focus { border-color: var(--navy); outline: 
 /* Cabecera de la app */
 .top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: inherit; }
-.brand h1 { font-size: 1.5rem; font-weight: 800; }
+.brand h1 { font-size: 1.5rem; font-weight: 800; letter-spacing: -.01em; }
+.brand h1 .tld { color: var(--accent-deep); font-weight: 600; }
 .stats { display: flex; gap: 8px; align-items: center; }
 .stat { display: flex; align-items: center; gap: 6px; background: var(--surface); border: 2px solid var(--line); border-radius: 999px; padding: 6px 12px; font-weight: 700; font-variant-numeric: tabular-nums; }
 .stat svg { width: 20px; height: 20px; }

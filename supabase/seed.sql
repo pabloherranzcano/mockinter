@@ -1,4 +1,4 @@
--- Generado por scripts/import_xlsx.py desde Temario_Racha.xlsx
+-- Generado por scripts/import_xlsx.py desde Temario_mockinter.xlsx
 begin;
 insert into public.topics (id, role, role_name, name, position, is_english) values ('ANG-01', 'ANG', 'Frontend Angular', 'Fundamentos y componentes', 1, false) on conflict (id) do update set role_name = excluded.role_name, name = excluded.name, position = excluded.position, is_english = excluded.is_english;
 insert into public.topics (id, role, role_name, name, position, is_english) values ('ANG-02', 'ANG', 'Frontend Angular', 'Change detection y rendimiento', 2, false) on conflict (id) do update set role_name = excluded.role_name, name = excluded.name, position = excluded.position, is_english = excluded.is_english;

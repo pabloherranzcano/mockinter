@@ -1,4 +1,4 @@
-# Racha
+# mockinter.dev
 
 Lecciones de 5 minutos para preparar entrevistas técnicas (Angular, React, Cloud/DevOps y Backend Java/Spring), con rachas, XP, vidas, corrección de respuestas abiertas con IA y un panel de admin para mantener las preguntas.
 
@@ -34,14 +34,14 @@ Necesitas: Node 22.12 o superior, Python 3, y cuentas en GitHub, [Supabase](http
 3. Genera la carga de preguntas desde el Excel y ejecútala también en el SQL Editor:
    ```bash
    pip install openpyxl
-   npm run import -- ruta/a/Temario_Racha.xlsx      # crea supabase/seed.sql
+   npm run import -- ruta/a/Temario_mockinter.xlsx      # crea supabase/seed.sql
    ```
    Copia el contenido de `supabase/seed.sql` en el SQL Editor y ejecútalo.
 
 ### 2. Autenticación
 
 En **Authentication → URL Configuration**:
-- **Site URL:** la URL de tu web, por ejemplo `https://racha.vercel.app` (o tu dominio).
+- **Site URL:** la URL de tu web, por ejemplo `https://mockinter.dev` (o tu dominio).
 - **Redirect URLs:** añade esa misma URL y `http://localhost:4200` para desarrollar.
 
 En **Authentication → Providers**:
@@ -96,7 +96,7 @@ npm start          # http://localhost:4200
 
 1. Sube el proyecto a GitHub:
    ```bash
-   git remote add origin https://github.com/TU-USUARIO/racha.git
+   git remote add origin https://github.com/TU-USUARIO/mockinter.git
    git push -u origin main
    ```
 2. En Vercel: **Add New → Project**, importa el repositorio y pulsa **Deploy**. `vercel.json` ya indica el comando de build y la carpeta de salida.
@@ -105,7 +105,7 @@ npm start          # http://localhost:4200
 
 A partir de aquí, cada `git push` a `main` despliega solo, y cada pull request genera una URL de prueba.
 
-> **Netlify o Cloudflare Pages** también sirven: comando `npm run build`, carpeta `dist/racha/browser`. El archivo `public/_redirects` ya está incluido para Netlify.
+> **Netlify o Cloudflare Pages** también sirven: comando `npm run build`, carpeta `dist/mockinter/browser`. El archivo `public/_redirects` ya está incluido para Netlify.
 
 ---
 
@@ -118,7 +118,7 @@ A partir de aquí, cada `git push` a `main` despliega solo, y cada pull request 
 
 En **Admin → Preguntas** puedes filtrar por puesto, tema, nivel o estado, **ocultar o mostrar** cualquier pregunta con un interruptor, y crear preguntas nuevas. El ID se asigna solo.
 
-**Cambios masivos desde el Excel:** edita el Excel, ejecuta `npm run import -- Temario_Racha.xlsx` y ejecuta el `seed.sql` resultante. Por defecto **no** sobrescribe las preguntas que ya existen, para no pisar lo que hayas cambiado desde el panel. Con `--overwrite`, el Excel manda.
+**Cambios masivos desde el Excel:** edita el Excel, ejecuta `npm run import -- Temario_mockinter.xlsx` y ejecuta el `seed.sql` resultante. Por defecto **no** sobrescribe las preguntas que ya existen, para no pisar lo que hayas cambiado desde el panel. Con `--overwrite`, el Excel manda.
 
 ---
 
@@ -139,7 +139,7 @@ En **Admin → Preguntas** puedes filtrar por puesto, tema, nivel o estado, **oc
 npm start          # servidor de desarrollo
 npm test           # tests unitarios (Vitest)
 npm run test:db    # esquema y reglas de seguridad en un Postgres en memoria
-npm run build      # build de producción en dist/racha/browser
+npm run build      # build de producción en dist/mockinter/browser
 ```
 
 ### Estructura

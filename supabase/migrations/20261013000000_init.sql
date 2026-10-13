@@ -1,4 +1,4 @@
--- Racha: esquema inicial
+-- mockinter.dev: esquema inicial
 -- Tablas: profiles, topics, questions, progress, wrong_answers, reports, grading_usage
 -- Seguridad: Row Level Security en todas las tablas. Solo el rol 'admin' puede editar el contenido.
 
@@ -43,7 +43,7 @@ create function public.protect_profile() returns trigger
 language plpgsql security definer set search_path = public as $$
 begin
   -- Solo se aplica a peticiones de usuarios de la app (no al editor SQL ni al service role)
-  if current_setting('racha.trusted', true) = 'on' or coalesce(auth.role(), '') <> 'authenticated' then
+  if current_setting('mockinter.trusted', true) = 'on' or coalesce(auth.role(), '') <> 'authenticated' then
     return new;
   end if;
   if new.role is distinct from old.role and not public.is_admin() then
@@ -159,7 +159,7 @@ begin
     do update set best_stars = greatest(progress.best_stars, excluded.best_stars), completed_at = now();
   end if;
 
-  perform set_config('racha.trusted', 'on', true);
+  perform set_config('mockinter.trusted', 'on', true);
   update profiles set
     xp = xp + p_xp,
     day_xp = case when day_xp_date = today then day_xp + p_xp else p_xp end,
@@ -171,7 +171,7 @@ begin
     last_day = today
   where id = auth.uid()
   returning * into p;
-  perform set_config('racha.trusted', 'off', true);
+  perform set_config('mockinter.trusted', 'off', true);
   return p;
 end $$;
 
