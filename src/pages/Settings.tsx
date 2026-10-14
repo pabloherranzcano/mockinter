@@ -27,10 +27,10 @@ export default function Settings() {
     try { await auth.updatePassword(password); setPassword(''); setMsg('Contraseña cambiada.'); }
     catch (err) { setError((err as Error)?.message ?? 'No se pudo cambiar la contraseña.'); }
   }
-  async function logout() { await auth.signOut(); navigate('/entrar', { replace: true }); }
+  async function logout() { await auth.signOut(); navigate('/login', { replace: true }); }
   async function deleteAccount() {
     flash();
-    try { await auth.deleteAccount(); navigate('/entrar', { replace: true }); }
+    try { await auth.deleteAccount(); navigate('/login', { replace: true }); }
     catch { setError('No se pudo borrar la cuenta. Escríbenos y lo hacemos a mano.'); }
   }
 

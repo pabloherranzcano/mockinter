@@ -70,7 +70,7 @@ export default function AdminReports() {
               <span className="muted small">{g.meta}</span>
               {!g.active && <span className="badge soft">Oculta</span>}
               <span className="spacer" />
-              <Link className="btn navy sm" to={`/admin/preguntas/${g.questionId}`}>Editar pregunta</Link>
+              <Link className="btn navy sm" to={`/admin/questions/${g.questionId}`}>Editar pregunta</Link>
             </div>
             <strong>{g.prompt}</strong>
             {g.reports.map((r) => (

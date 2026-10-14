@@ -14,8 +14,8 @@ export default function AdminLayout() {
         <Link className="btn ghost sm" to="/">Ir a la app</Link>
       </header>
       <nav className="tabs">
-        <NavLink to="/admin/reportes" className={cls}>Reportes {open > 0 && <span className="badge">{open}</span>}</NavLink>
-        <NavLink to="/admin/preguntas" className={cls}>Preguntas</NavLink>
+        <NavLink to="/adminreports" className={cls}>Reportes {open > 0 && <span className="badge">{open}</span>}</NavLink>
+        <NavLink to="/admin/questions" className={cls}>Preguntas</NavLink>
       </nav>
       <Outlet />
     </div>

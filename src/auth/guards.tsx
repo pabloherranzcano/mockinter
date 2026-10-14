@@ -9,14 +9,14 @@ function Loading() {
 export function RequireAuth() {
   const { ready, session } = useAuth();
   if (!ready) return <Loading />;
-  return session ? <Outlet /> : <Navigate to="/entrar" replace />;
+  return session ? <Outlet /> : <Navigate to="/login" replace />;
 }
 
 /** Requiere sesión y haber completado el onboarding. */
 export function RequireOnboarded() {
   const { ready, session, profile } = useAuth();
   if (!ready) return <Loading />;
-  if (!session) return <Navigate to="/entrar" replace />;
+  if (!session) return <Navigate to="/login" replace />;
   if (!profile) return <Loading />;
   return profile.onboarded ? <Outlet /> : <Navigate to="/empezar" replace />;
 }

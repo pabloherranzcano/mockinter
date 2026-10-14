@@ -43,16 +43,16 @@ export function App() {
           </Route>
           <Route element={<RequireOnboarded />}>
             <Route path="/" element={<Home />} />
-            <Route path="/leccion/:topicId/:level" element={<Lesson />} />
-            <Route path="/leccion/:topicId" element={<Lesson />} />
-            <Route path="/repaso" element={<Lesson review />} />
+            <Route path="/lesson/:topicId/:level" element={<Lesson />} />
+            <Route path="/lesson/:topicId" element={<Lesson />} />
+            <Route path="/review" element={<Lesson review />} />
           </Route>
           <Route element={<RequireAdmin />}>
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<Navigate to="reportes" replace />} />
-              <Route path="reportes" element={<AdminReports />} />
-              <Route path="preguntas" element={<AdminQuestions />} />
-              <Route path="preguntas/:id" element={<QuestionEditor />} />
+              <Route path="reports" element={<AdminReports />} />
+              <Route path="questions" element={<AdminQuestions />} />
+              <Route path="questions/:id" element={<QuestionEditor />} />
             </Route>
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />

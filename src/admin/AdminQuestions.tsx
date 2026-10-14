@@ -42,7 +42,7 @@ export default function AdminQuestions() {
         <h2 style={{ fontSize: '1.5rem' }}>Preguntas</h2>
         <span className="badge soft">{filtered.length} de {all.length}</span>
         <span className="spacer" />
-        <Link className="btn sm" to="/admin/preguntas/nueva">Nueva pregunta</Link>
+        <Link className="btn sm" to="/admin/questions/nueva">Nueva pregunta</Link>
       </div>
 
       <div className="filters">
@@ -87,7 +87,7 @@ export default function AdminQuestions() {
                   </label>
                 </td>
                 <td className="id">{q.id}</td>
-                <td><Link to={`/admin/preguntas/${q.id}`}>{q.prompt}</Link></td>
+                <td><Link to={`/admin/questions/${q.id}`}>{q.prompt}</Link></td>
                 <td className="small">{TYPE_LABELS[q.type]}</td>
                 <td className="small">{q.level}</td>
                 <td className="small">{q.status === 'reviewed' ? 'Revisada' : q.status === 'discarded' ? 'Descartada' : 'Pendiente'}</td>

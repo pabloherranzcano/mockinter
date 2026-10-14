@@ -60,7 +60,7 @@ export default function Home() {
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7l8-4z" /></svg>
             </Link>
           )}
-          <Link className="icon-btn" to="/ajustes" aria-label="Ajustes" title="Ajustes">
+          <Link className="icon-btn" to="/settings" aria-label="Ajustes" title="Ajustes">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="8" r="4" /><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6" /></svg>
           </Link>
         </div>
@@ -79,7 +79,7 @@ export default function Home() {
         </div>
         <div className="actions">
           {current && (
-            <Link className="btn" to={`/leccion/${current.topic.id}/${current.next.level}`}>
+            <Link className="btn" to={`/lesson/${current.topic.id}/${current.next.level}`}>
               {allDone ? 'Practicar' : anyDone ? 'Seguir' : 'Empezar'}
             </Link>
           )}
@@ -87,7 +87,7 @@ export default function Home() {
       </section>
 
       <p className="eyebrow" style={{ marginTop: 24 }}>
-        {roleName} · empiezas en {start} · {p?.english === 'no' ? 'entrevista en español' : 'entrevista en inglés'} · <Link to="/ajustes">cambiar</Link>
+        {roleName} · empiezas en {start} · {p?.english === 'no' ? 'entrevista en español' : 'entrevista en inglés'} · <Link to="/settings">cambiar</Link>
       </p>
 
       {topicsQ.isError && <div className="error" style={{ marginTop: 16 }}>No se pudo cargar tu camino. Recarga la página.</div>}
@@ -103,7 +103,7 @@ export default function Home() {
               {showBlock && <div className="block-head">{BLOCK_LABELS[t.role] ?? t.role_name}</div>}
               <div className="stop">
                 <Link className={'node' + (complete ? ' done' : '') + (isCurrent ? ' next' : '')}
-                  to={`/leccion/${t.id}/${next.level}`} aria-label={`${t.name}, escalón ${next.level}`}>
+                  to={`/lesson/${t.id}/${next.level}`} aria-label={`${t.name}, escalón ${next.level}`}>
                   {complete
                     ? <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
                     : i + 1}
@@ -120,7 +120,7 @@ export default function Home() {
                       );
                       const label = `${s.level}${s.done ? `, ${s.stars} de 3 estrellas` : ''}${!s.unlocked ? ', bloqueado' : ''}`;
                       return s.unlocked ? (
-                        <Link key={s.level} role="listitem" className={cls} to={`/leccion/${t.id}/${s.level}`} aria-label={label} title={label}>
+                        <Link key={s.level} role="listitem" className={cls} to={`/lesson/${t.id}/${s.level}`} aria-label={label} title={label}>
                           {LEVEL_SHORT[s.level]} {pips}
                         </Link>
                       ) : (

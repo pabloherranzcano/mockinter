@@ -73,7 +73,7 @@ export default function QuestionEditor() {
       setSaved(true);
       qc.setQueryData(['question', savedQ.id], savedQ);
       void qc.invalidateQueries({ queryKey: ['adminQuestions'] });
-      if (isNew) navigate(`/admin/preguntas/${savedQ.id}`, { replace: true });
+      if (isNew) navigate(`/admin/questions/${savedQ.id}`, { replace: true });
     },
     onError: (e) => setError('No se pudo guardar: ' + ((e as Error)?.message ?? 'error desconocido')),
   });
@@ -99,7 +99,7 @@ export default function QuestionEditor() {
 
   return (
     <>
-      <div className="row" style={{ marginTop: 18 }}><Link className="link small" to="/admin/preguntas">← Preguntas</Link></div>
+      <div className="row" style={{ marginTop: 18 }}><Link className="link small" to="/admin/questions">← Preguntas</Link></div>
       <div className="row" style={{ marginTop: 8 }}>
         <h2 style={{ fontSize: '1.5rem' }}>{isNew ? 'Nueva pregunta' : 'Editar pregunta'}</h2>
         {!isNew && <code>{q.id}</code>}
@@ -217,7 +217,7 @@ export default function QuestionEditor() {
           {error && <div className="error">{error}</div>}
           {saved && <div className="notice">Guardada. Los usuarios ya ven la nueva versión.</div>}
           <div className="row">
-            <Link className="btn ghost" to="/admin/preguntas">Cancelar</Link>
+            <Link className="btn ghost" to="/admin/questions">Cancelar</Link>
             <span className="spacer" />
             <button type="submit" className="btn" disabled={save.isPending}>{save.isPending ? 'Guardando…' : 'Guardar'}</button>
           </div>
