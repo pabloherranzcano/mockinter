@@ -42,7 +42,7 @@ export default function Settings() {
       <section className="card stack" style={{ marginTop: 18 }}>
         <p className="eyebrow" style={{ margin: 0 }}>Tu preparación</p>
         <p style={{ margin: 0 }}>{p?.onboarded ? <><strong>{roleName}</strong> · {p.level} · {englishLabel}</> : 'Aún no has elegido puesto y nivel.'}</p>
-        <Link className="btn ghost sm" to="/empezar" style={{ justifySelf: 'start' }}>Cambiar puesto, nivel o idioma</Link>
+        <Link className="btn ghost sm" to="/start" style={{ justifySelf: 'start' }}>Cambiar puesto, nivel o idioma</Link>
       </section>
 
       <section className="card stack" style={{ marginTop: 14 }}>
@@ -79,7 +79,7 @@ export default function Settings() {
           </>
         )}
       </section>
-      <p className="small muted" style={{ marginTop: 20 }}><Link to="/privacidad">Política de privacidad</Link></p>
+      <p className="small muted" style={{ marginTop: 20 }}><Link to="/privacy">Política de privacidad</Link></p>
     </main>
   );
 }

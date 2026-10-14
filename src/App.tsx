@@ -49,7 +49,7 @@ export function App() {
           </Route>
           <Route element={<RequireAdmin />}>
             <Route path="/admin" element={<AdminLayout />}>
-              <Route index element={<Navigate to="/admin/reports<" replace />} />
+              <Route index element={<Navigate to="/admin/reports" replace />} />
               <Route path="reports" element={<AdminReports />} />
               <Route path="questions" element={<AdminQuestions />} />
               <Route path="questions/:id" element={<QuestionEditor />} />

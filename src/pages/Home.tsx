@@ -138,7 +138,7 @@ export default function Home() {
       </div>
 
       {(wrongQ.data ?? 0) > 0 && (
-        <Link className="btn ghost full" style={{ marginTop: 24 }} to="/repaso">Repasar mis fallos ({wrongQ.data})</Link>
+        <Link className="btn ghost full" style={{ marginTop: 24 }} to="/review">Repasar mis fallos ({wrongQ.data})</Link>
       )}
     </main>
   );

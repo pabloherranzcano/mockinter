@@ -31,12 +31,12 @@ export default function Login() {
     try {
       if (mode === 'in') {
         const p = await auth.signIn(email, password);
-        navigate(p?.onboarded ? '/' : '/empezar', { replace: true });
+        navigate(p?.onboarded ? '/' : '/start', { replace: true });
       } else if (mode === 'up') {
         if (password.length < 8) throw new Error('La contraseña necesita al menos 8 caracteres.');
         const { needsConfirmation } = await auth.signUp(email, password);
         if (needsConfirmation) setNotice('Te hemos enviado un email. Confirma tu cuenta desde el enlace y vuelve a entrar.');
-        else navigate('/empezar', { replace: true });
+        else navigate('/start', { replace: true });
       } else {
         await auth.resetPassword(email);
         setNotice('Si el email existe, te llegará un enlace para cambiar la contraseña.');
@@ -73,7 +73,7 @@ export default function Login() {
             </label>
           )}
           {mode === 'up' && (
-            <p className="small muted" style={{ margin: 0 }}>Al crear la cuenta aceptas la <Link to="/privacidad">política de privacidad</Link>.</p>
+            <p className="small muted" style={{ margin: 0 }}>Al crear la cuenta aceptas la <Link to="/privacy">política de privacidad</Link>.</p>
           )}
           {error && <div className="error">{error}</div>}
           {notice && <div className="notice">{notice}</div>}
@@ -88,7 +88,7 @@ export default function Login() {
         <div className="row muted small" style={{ justifyContent: 'center' }}>o</div>
         <button type="button" className="btn ghost full" onClick={google}>Continuar con Google</button>
       </div>
-      <p className="small muted" style={{ marginTop: 24 }}><Link to="/privacidad">Privacidad</Link></p>
+      <p className="small muted" style={{ marginTop: 24 }}><Link to="/privacy">Privacidad</Link></p>
     </main>
   );
 }
