@@ -16,6 +16,5 @@ export function localizeQuestion(q: Question, lang: 'en' | 'es'): Question {
     // La frase "para decir en la entrevista" pasa a ser la versión en español, sin traducción debajo
     say_en: q.say_en ? (q.say_es || q.say_en) : null,
     say_es: null,
-    prompt_en: null,
   };
 }

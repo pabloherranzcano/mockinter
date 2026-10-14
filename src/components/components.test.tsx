@@ -4,6 +4,7 @@ import { Rich } from './Rich';
 import { validateQuestion } from '../admin/QuestionEditor';
 import { groupReports } from '../admin/AdminReports';
 import { localizeQuestion } from '../lib/localize';
+import { tokenize } from './CodeBlock';
 import type { Question, Report } from '../lib/models';
 
 describe('Rich', () => {
@@ -21,8 +22,8 @@ describe('Rich', () => {
 
 describe('validateQuestion', () => {
   const base: Question = {
-    id: '', topic_id: 'ANG-01', level: 'Mid', type: 'mc', prompt: '¿Qué?', prompt_en: null, correct: 'Esto', wrong: ['Aquello'],
-    explanation: '', say_en: null, say_es: null, keys: null, model_en: null, model_es: null, status: 'reviewed', active: true,
+    id: '', topic_id: 'ANG-01', level: 'Mid', type: 'mc', prompt: '¿Qué?', code: null, correct: 'Esto', wrong: ['Aquello'],
+    explanation: '', say_en: null, say_es: null, status: 'reviewed', active: true,
   };
   it('acepta una pregunta completa', () => expect(validateQuestion(base, '')).toBeNull());
   it('exige tema', () => expect(validateQuestion({ ...base, topic_id: '' }, '')).toMatch(/tema/));
@@ -45,9 +46,9 @@ describe('groupReports', () => {
 
 describe('localizeQuestion', () => {
   const q: Question = {
-    id: 'COM-02-M2', topic_id: 'COM-02', level: 'Mid', type: 'mc', prompt: '"Why did you leave?" ¿Qué respondes?', prompt_en: null,
+    id: 'COM-02-M2', topic_id: 'COM-02', level: 'Mid', type: 'mc', prompt: '"Why did you leave?" ¿Qué respondes?', code: null,
     correct: 'I wanted more growth.', wrong: ['My manager was terrible.'], explanation: 'Explicación', say_en: 'I was on a project…', say_es: 'Estaba en un proyecto…',
-    keys: null, model_en: null, model_es: null, status: 'reviewed', active: true,
+    status: 'reviewed', active: true,
     es_prompt: '«¿Por qué dejaste tu último trabajo?»', es_correct: 'Quería crecer.', es_wrong: ['Mi jefe era horrible.'], es_explanation: null,
   };
   it('en inglés no cambia nada', () => expect(localizeQuestion(q, 'en')).toBe(q));
@@ -63,5 +64,17 @@ describe('localizeQuestion', () => {
   it('sin variante, en español deja la pregunta como estaba', () => {
     const plain = { ...q, es_prompt: null, es_correct: null, es_wrong: null };
     expect(localizeQuestion(plain, 'es').prompt).toBe(q.prompt);
+  });
+});
+
+
+describe('CodeBlock', () => {
+  it('resalta palabras clave, cadenas y comentarios sin perder texto', () => {
+    const code = "const a = 'hola'; // saludo\nreturn a;";
+    const parts = tokenize(code);
+    expect(parts.map((p) => p.t).join('')).toBe(code);
+    expect(parts.find((p) => p.t === 'const')?.c).toBe('kw');
+    expect(parts.find((p) => p.t === "'hola'")?.c).toBe('str');
+    expect(parts.find((p) => p.t.startsWith('//'))?.c).toBe('com');
   });
 });

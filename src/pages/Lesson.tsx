@@ -2,29 +2,32 @@ import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../auth/AuthProvider';
-import { clearWrong, fetchLessonQuestions, fetchReviewQuestions, fetchTopic, finishLesson, gradeAnswer, markWrong } from '../lib/api';
-import type { Grade, Question } from '../lib/models';
+import { clearWrong, fetchLessonQuestions, fetchReviewQuestions, fetchTopic, finishLesson, markWrong } from '../lib/api';
+import type { Level, Question } from '../lib/models';
 import { looksLikeCode } from '../lib/utils';
 import { localizeQuestion } from '../lib/localize';
+import { LEVEL_ORDER } from '../lib/progress';
 import { Rich } from '../components/Rich';
+import { CodeBlock } from '../components/CodeBlock';
 import { ReportDialog } from '../components/ReportDialog';
-import { HEARTS, PASS_SCORE, accuracy, canCheck, initLesson, lessonReducer, starsFor, type LessonState } from './lessonReducer';
+import { HEARTS, accuracy, canCheck, initLesson, lessonReducer, starsFor, type LessonState } from './lessonReducer';
 
 const RAYS = Array.from({ length: 12 }, (_, i) => i);
 
 export default function Lesson({ review = false }: { review?: boolean }) {
-  const { topicId = '' } = useParams();
+  const { topicId = '', level: levelParam } = useParams();
   const { profile } = useAuth();
   const navigate = useNavigate();
   const lang: 'en' | 'es' = profile?.english === 'no' ? 'es' : 'en';
+  const level: Level | null = LEVEL_ORDER.includes(levelParam as Level) ? (levelParam as Level) : profile?.level ?? null;
 
   useEffect(() => { if (!profile?.level) navigate('/empezar', { replace: true }); }, [profile, navigate]);
 
   const topicQ = useQuery({ queryKey: ['topic', topicId], queryFn: () => fetchTopic(topicId), enabled: !review && !!topicId });
   const questionsQ = useQuery({
-    queryKey: review ? ['review', lang] : ['lesson', topicId, profile?.level],
-    queryFn: () => (review ? fetchReviewQuestions(lang) : fetchLessonQuestions(topicId, profile!.level!)),
-    enabled: !!profile?.level,
+    queryKey: review ? ['review', lang] : ['lesson', topicId, level],
+    queryFn: () => (review ? fetchReviewQuestions(lang) : fetchLessonQuestions(topicId, level!)),
+    enabled: review || !!level,
     staleTime: 0,
     gcTime: 0,
   });
@@ -33,28 +36,30 @@ export default function Lesson({ review = false }: { review?: boolean }) {
     if (questionsQ.isError) return <EmptyState review={review} error />;
     return <main className="wrap"><p className="muted">Preparando la lección…</p></main>;
   }
-  const playable = questionsQ.data
-    .filter((q) => !(q.type === 'open' && !q.keys && !q.model_en && !q.model_es))
-    .map((q) => localizeQuestion(q, lang));
+  const playable = questionsQ.data.map((q) => localizeQuestion(q, lang));
   if (!playable.length) return <EmptyState review={review} />;
 
   return <LessonRunner key={questionsQ.dataUpdatedAt} questions={playable} review={review}
-    topicId={review ? null : topicId} topicName={topicQ.data?.name ?? null} onRetry={() => questionsQ.refetch()} />;
+    topicId={review ? null : topicId} level={review ? null : level}
+    topicName={topicQ.data?.name ?? null} onRetry={() => questionsQ.refetch()} />;
 }
 
 function EmptyState({ review, error }: { review: boolean; error?: boolean }) {
   return (
     <main className="result">
-      <h2>{error ? 'No se pudo cargar la lección' : review ? 'No tienes fallos que repasar' : 'Esta lección aún no tiene preguntas'}</h2>
-      <p className="muted">{error ? 'Revisa tu conexión y vuelve a intentarlo.' : review ? 'Cuando falles alguna pregunta, aparecerá aquí.' : 'Estamos preparando el contenido de este tema para tu nivel.'}</p>
+      <h2>{error ? 'No se pudo cargar la lección' : review ? 'No tienes fallos que repasar' : 'Este escalón aún no tiene preguntas'}</h2>
+      <p className="muted">{error ? 'Revisa tu conexión y vuelve a intentarlo.' : review ? 'Cuando falles alguna pregunta, aparecerá aquí.' : 'Estamos preparando el contenido de este tema para este nivel.'}</p>
       <Link className="btn" to="/">Volver al inicio</Link>
     </main>
   );
 }
 
-interface RunnerProps { questions: Question[]; review: boolean; topicId: string | null; topicName: string | null; onRetry: () => void; }
+interface RunnerProps {
+  questions: Question[]; review: boolean; topicId: string | null; level: Level | null;
+  topicName: string | null; onRetry: () => void;
+}
 
-function LessonRunner({ questions, review, topicId, topicName, onRetry }: RunnerProps) {
+function LessonRunner({ questions, review, topicId, level, topicName, onRetry }: RunnerProps) {
   const { profile, session, setProfile } = useAuth();
   const queryClient = useQueryClient();
   const [state, dispatch] = useReducer(lessonReducer, questions, initLesson);
@@ -63,7 +68,6 @@ function LessonRunner({ questions, review, topicId, topicName, onRetry }: Runner
   const [bonus, setBonus] = useState(false);
   const finished = useRef(false);
   const q = state.queue[0];
-  const lang: 'en' | 'es' = profile?.english === 'no' ? 'es' : 'en';
 
   // Efectos secundarios de cada corrección: lista de fallos en el servidor
   useEffect(() => {
@@ -80,18 +84,22 @@ function LessonRunner({ questions, review, topicId, topicName, onRetry }: Runner
     const perfect = !review && state.hearts === HEARTS;
     setBonus(perfect);
     const xp = state.xp + (perfect ? 10 : 0);
-    finishLesson(topicId, review ? null : profile?.level ?? null, starsFor(state), xp)
-      .then((p) => { setProfile(p); void queryClient.invalidateQueries({ queryKey: ['path'] }); void queryClient.invalidateQueries({ queryKey: ['wrongCount'] }); })
+    finishLesson(topicId, level, starsFor(state), xp)
+      .then((p) => {
+        setProfile(p);
+        void queryClient.invalidateQueries({ queryKey: ['path'] });
+        void queryClient.invalidateQueries({ queryKey: ['wrongCount'] });
+      })
       .catch(() => setSaveError('No se pudo guardar el progreso. Revisa tu conexión.'));
   }, [state.phase]);
 
   useEffect(() => { window.scrollTo(0, 0); }, [q?.id, state.done]);
 
   const onKey = useCallback((e: KeyboardEvent) => {
-    if (state.phase !== 'play' || reporting || (e.target as HTMLElement)?.tagName === 'TEXTAREA') return;
+    if (state.phase !== 'play' || reporting) return;
     if (e.key === 'Enter') {
       if (state.feedback) { e.preventDefault(); dispatch({ type: 'next' }); }
-      else if (q && q.type !== 'open' && canCheck(state)) { e.preventDefault(); dispatch({ type: 'check' }); }
+      else if (q && canCheck(state)) { e.preventDefault(); dispatch({ type: 'check' }); }
       return;
     }
     const n = Number(e.key);
@@ -123,7 +131,7 @@ function LessonRunner({ questions, review, topicId, topicName, onRetry }: Runner
           <circle cx="60" cy="60" r="30" fill="var(--navy)" />
           <path d="M47 61l9 9 18-20" fill="none" stroke="var(--navy-ink)" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
-        <h2>{review ? '¡Repaso hecho!' : '¡Lección completada!'}</h2>
+        <h2>{review ? '¡Repaso hecho!' : `¡Escalón ${level} completado!`}</h2>
         <p className="muted">{topicName ?? 'Lo que acertaste sale de tu lista de fallos.'}{bonus ? ' · sin fallos, +10 XP extra' : ''}</p>
         <div className="tiles">
           <div className="tile amber"><div className="lab">XP</div><div className="val">+{state.xp + (bonus ? 10 : 0)}</div></div>
@@ -154,43 +162,42 @@ function LessonRunner({ questions, review, topicId, topicName, onRetry }: Runner
             {state.hearts}
           </div>
         </div>
+        {!review && topicName && <p className="eyebrow" style={{ margin: '6px 0 0' }}>{topicName} · {level}</p>}
 
         {q.type === 'mc' && <MultipleChoice q={q} state={state} dispatch={dispatch} />}
         {q.type === 'fill' && <FillBlank q={q} state={state} dispatch={dispatch} />}
         {q.type === 'order' && <OrderPieces q={q} state={state} dispatch={dispatch} />}
-        {q.type === 'open' && <OpenQuestion key={q.id} q={q} lang={lang} answered={!!f} dispatch={dispatch} />}
       </main>
 
-      {(q.type !== 'open' || f) && (
-        <div className={'footer' + (f?.kind === 'ok' ? ' ok' : f?.kind === 'bad' ? ' bad' : '')}>
-          <div className="in">
-            {f ? (
-              <>
-                <div className="fb">
-                  <h3>{f.title}</h3>
-                  {!!f.xp && <p>+{f.xp} XP</p>}
-                  {f.solution && <p className="sol">{f.solution}</p>}
-                  {f.why && <p><Rich text={f.why} /></p>}
-                  {f.say && (
-                    <div className="say">
-                      <div className="say-lab">{f.say.label}</div>
-                      <div className="say-en">“{f.say.en}”</div>
-                      {f.say.es && <div className="say-es">{f.say.es}</div>}
-                    </div>
-                  )}
-                  <button type="button" className="report-link" onClick={() => setReporting(true)}>Reportar un problema con esta pregunta</button>
-                </div>
-                <button id="continue-btn" className={'btn' + (f.kind === 'ok' ? ' ok' : f.kind === 'bad' ? ' bad' : '')} onClick={() => dispatch({ type: 'next' })} autoFocus>Continuar</button>
-              </>
-            ) : (
-              <>
-                <div className="fb" />
-                <button className="btn" disabled={!canCheck(state)} onClick={() => dispatch({ type: 'check' })}>Comprobar</button>
-              </>
-            )}
-          </div>
+      <div className={'footer' + (f?.kind === 'ok' ? ' ok' : f?.kind === 'bad' ? ' bad' : '')}>
+        <div className="in">
+          {f ? (
+            <>
+              <div className="fb">
+                <h3>{f.title}</h3>
+                {f.solution && (looksLikeCode(f.solution) || f.solution.includes('\n')
+                  ? <pre className="sol-code">{f.solution}</pre>
+                  : <p className="sol">{f.solution}</p>)}
+                {f.why && <p><Rich text={f.why} /></p>}
+                {f.say && (
+                  <div className="say">
+                    <div className="say-lab">{f.say.label}</div>
+                    <div className="say-en">“{f.say.en}”</div>
+                    {f.say.es && <div className="say-es">{f.say.es}</div>}
+                  </div>
+                )}
+                <button type="button" className="report-link" onClick={() => setReporting(true)}>Reportar un problema con esta pregunta</button>
+              </div>
+              <button id="continue-btn" className={'btn' + (f.kind === 'ok' ? ' ok' : ' bad')} onClick={() => dispatch({ type: 'next' })} autoFocus>Continuar</button>
+            </>
+          ) : (
+            <>
+              <div className="fb" />
+              <button className="btn" disabled={!canCheck(state)} onClick={() => dispatch({ type: 'check' })}>Comprobar</button>
+            </>
+          )}
         </div>
-      )}
+      </div>
 
       {reporting && <ReportDialog questionId={q.id} onClose={() => setReporting(false)} />}
     </>
@@ -204,14 +211,16 @@ function MultipleChoice({ q, state, dispatch }: ExProps) {
   const f = state.feedback;
   return (
     <>
-      <div className="kind">Elige la respuesta</div>
+      <div className="kind">{q.code ? 'Lee el código y elige' : 'Elige la respuesta'}</div>
       <div className="q"><Rich text={q.prompt} /></div>
+      {q.code && <CodeBlock code={q.code} />}
       <div className="opts">
         {state.options.map((o, i) => {
-          const cls = ['opt', looksLikeCode(o.text) && 'code', !f && state.selected === i && 'sel', f && o.correct && 'right', f && state.selected === i && !o.correct && 'wrong'];
+          const isCode = looksLikeCode(o.text) || o.text.includes('\n');
+          const cls = ['opt', isCode && 'code', !f && state.selected === i && 'sel', f && o.correct && 'right', f && state.selected === i && !o.correct && 'wrong'];
           return (
             <button key={o.text} className={cls.filter(Boolean).join(' ')} disabled={!!f} onClick={() => dispatch({ type: 'select', index: i })}>
-              <span className="k">{i + 1}</span><span className="t">{o.text}</span>
+              <span className="k">{i + 1}</span><span className="t"><Rich text={o.text} /></span>
             </button>
           );
         })}
@@ -226,12 +235,13 @@ function FillBlank({ q, state, dispatch }: ExProps) {
   return (
     <>
       <div className="kind">Completa la frase</div>
-      <div className={'sentence' + (looksLikeCode(q.prompt) ? ' mono' : '')}>
-        {before}<span className="blank">{state.selected !== null ? state.options[state.selected].text : ' '}</span>{rest.join('___')}
+      {q.code && <CodeBlock code={q.code} />}
+      <div className="sentence">
+        <Rich text={before} /><span className="blank">{state.selected !== null ? state.options[state.selected].text : ' '}</span><Rich text={rest.join('___')} />
       </div>
       <div className="chips">
         {state.options.map((o, i) => {
-          const cls = ['chip', !f && state.selected === i && 'sel', f && o.correct && 'right', f && state.selected === i && !o.correct && 'wrong'];
+          const cls = ['chip', looksLikeCode(o.text) && 'mono', !f && state.selected === i && 'sel', f && o.correct && 'right', f && state.selected === i && !o.correct && 'wrong'];
           return <button key={o.text} className={cls.filter(Boolean).join(' ')} disabled={!!f} onClick={() => dispatch({ type: 'select', index: i })}>{o.text}</button>;
         })}
       </div>
@@ -245,6 +255,7 @@ function OrderPieces({ q, state, dispatch }: ExProps) {
     <>
       <div className="kind">Ordena las piezas</div>
       <div className="q">{q.prompt}</div>
+      {q.code && <CodeBlock code={q.code} />}
       <div className="answer-row">
         {state.placed.length === 0 && <span className="muted small" style={{ padding: 8 }}>Toca las piezas en orden</span>}
         {state.placed.map((idx, n) => (
@@ -260,88 +271,6 @@ function OrderPieces({ q, state, dispatch }: ExProps) {
           </button>
         ))}
       </div>
-    </>
-  );
-}
-
-function OpenQuestion({ q, lang, answered, dispatch }: { q: Question; lang: 'en' | 'es'; answered: boolean; dispatch: Dispatch }) {
-  const [answer, setAnswer] = useState('');
-  const [grading, setGrading] = useState(false);
-  const [grade, setGrade] = useState<Grade | null>(null);
-  const [note, setNote] = useState('');
-  const [selfAssess, setSelfAssess] = useState(false);
-  const model = lang === 'es' ? (q.model_es || q.model_en || '') : (q.model_en || q.model_es || '');
-  const color = (s: number) => (s >= 75 ? 'var(--ok)' : s >= PASS_SCORE ? 'var(--accent)' : 'var(--bad)');
-
-  async function evaluate() {
-    setGrading(true);
-    const r = await gradeAnswer(q.id, answer.trim(), lang);
-    setGrading(false);
-    if ('error' in r) {
-      setNote(r.error === 'daily_limit'
-        ? 'Has usado todas las correcciones automáticas de hoy. Compara tu respuesta con la respuesta modelo.'
-        : 'La corrección automática no está disponible ahora. Compara tu respuesta con la respuesta modelo.');
-      setSelfAssess(true);
-      return;
-    }
-    setGrade(r);
-    const pass = r.score >= PASS_SCORE;
-    dispatch({ type: 'openResult', pass, xp: pass ? Math.round(r.score / 5) : 5, title: pass ? '¡Buena respuesta!' : 'Hay que pulirla' });
-  }
-
-  function selfGrade(ok: boolean) {
-    setSelfAssess(false);
-    dispatch({ type: 'openResult', pass: ok, xp: ok ? 15 : 5, title: ok ? '¡Bien!' : 'Apuntada para mejorar' });
-  }
-
-  return (
-    <>
-      <div className="kind">Pregunta de entrevista</div>
-      <div className="q">{q.prompt}</div>
-      {lang === 'en' && q.prompt_en && <div className="q-sub">En la entrevista: “{q.prompt_en}”</div>}
-      <div className="q-sub">{lang === 'en' ? 'Respóndelo en inglés, como lo dirías en voz alta.' : 'Respóndelo como lo dirías en voz alta.'}</div>
-      <textarea id="open-answer" value={answer} onChange={(e) => setAnswer(e.target.value)} readOnly={grading || !!grade || selfAssess || answered}
-        placeholder={lang === 'en' ? 'Write your answer in English…' : 'Escribe tu respuesta…'} aria-label="Tu respuesta" />
-      {grading && <div className="thinking"><span className="dots"><i /><i /><i /></span>Tu entrevistador está leyendo la respuesta…</div>}
-      {note && <p className="small muted">{note}</p>}
-      {grade && (
-        <div className="grade">
-          <div className="score">
-            <div className="num" style={{ color: color(grade.score) }}>{grade.score}</div>
-            <div className="meter"><span style={{ width: `${grade.score}%`, background: color(grade.score) }} /></div>
-          </div>
-          {grade.strengths.length > 0 && <div><h4>Lo que funciona</h4><ul>{grade.strengths.map((s, i) => <li key={i}>{s}</li>)}</ul></div>}
-          {grade.improve.length > 0 && <div><h4>Para mejorar</h4><ul>{grade.improve.map((s, i) => <li key={i}>{s}</li>)}</ul></div>}
-          {grade.language.length > 0 && (
-            <div><h4>Inglés</h4>{grade.language.map((x, i) => <div className="fix" key={i}><s>{x.wrong}</s>→<b>{x.right}</b></div>)}</div>
-          )}
-          {grade.better && <div><h4>Tu respuesta, mejorada</h4><div className="better">{grade.better}</div></div>}
-        </div>
-      )}
-      {selfAssess && (
-        <div className="grade">
-          <div><h4>Respuesta modelo</h4><div className="better">{model}</div></div>
-          {q.keys && <div><h4>Una buena respuesta incluye</h4><p style={{ margin: 0 }}>{q.keys}</p></div>}
-        </div>
-      )}
-      {!answered && (
-        <div className="footer">
-          <div className="in">
-            {selfAssess ? (
-              <>
-                <div className="fb"><h3>¿Cómo te salió?</h3><p>Sé sincero: esto solo lo ves tú.</p></div>
-                <button className="btn ghost" onClick={() => selfGrade(false)}>Me faltó</button>
-                <button className="btn ok" onClick={() => selfGrade(true)}>La tenía</button>
-              </>
-            ) : (
-              <>
-                <div className="fb" />
-                <button className="btn" disabled={answer.trim().length < 3 || grading} onClick={evaluate}>Evaluar</button>
-              </>
-            )}
-          </div>
-        </div>
-      )}
     </>
   );
 }

@@ -7,12 +7,11 @@ import { shuffle } from '../lib/utils';
  */
 
 export const HEARTS = 5;
-export const PASS_SCORE = 55;
 
 export interface Option { text: string; correct: boolean; }
 
 export interface Feedback {
-  kind: 'ok' | 'bad' | 'open';
+  kind: 'ok' | 'bad';
   title: string;
   solution?: string;
   why?: string | null;
@@ -47,7 +46,6 @@ export type LessonAction =
   | { type: 'place'; index: number }
   | { type: 'unplace'; position: number }
   | { type: 'check' }
-  | { type: 'openResult'; pass: boolean; xp: number; title: string }
   | { type: 'next' };
 
 const titlesOk = ['¡Correcto!', '¡Eso es!', '¡Muy bien!'];
@@ -67,13 +65,11 @@ function prepare(q: Question | undefined): Pick<LessonState, 'options' | 'select
   return base;
 }
 
-/** Cerradas barajadas primero, la abierta al final. */
+/** Preguntas barajadas. */
 export function initLesson(questions: Question[]): LessonState {
-  const closed = shuffle(questions.filter((q) => q.type !== 'open'));
-  const open = questions.filter((q) => q.type === 'open');
-  const queue = [...closed, ...open];
+  const queue = shuffle(questions);
   return {
-    phase: 'play', queue, total: queue.length, closedCount: closed.length, done: 0, hearts: HEARTS, xp: 0,
+    phase: 'play', queue, total: queue.length, closedCount: queue.length, done: 0, hearts: HEARTS, xp: 0,
     seen: [], requeue: false, ...prepare(queue[0]),
   };
 }
@@ -118,8 +114,6 @@ export function lessonReducer(s: LessonState, a: LessonAction): LessonState {
         feedback: { kind: 'bad', title: 'No exactamente', solution, why: q.explanation, say },
       };
     }
-    case 'openResult':
-      return { ...s, done: s.done + 1, xp: s.xp + a.xp, requeue: false, feedback: { kind: 'open', title: a.title, xp: a.xp } };
     case 'next': {
       if (!q || !s.feedback) return s;
       const queue = s.requeue ? [...s.queue.slice(1), q] : s.queue.slice(1);

@@ -4,8 +4,8 @@ import { HEARTS, accuracy, canCheck, initLesson, lessonReducer, starsFor, type L
 
 function q(id: string, type: Question['type'], extra: Partial<Question> = {}): Question {
   return {
-    id, topic_id: 'ANG-01', level: 'Mid', type, prompt: 'Pregunta ___', prompt_en: null, correct: 'Bien', wrong: ['Mal 1', 'Mal 2'],
-    explanation: 'Porque sí', say_en: null, say_es: null, keys: null, model_en: null, model_es: null, status: 'reviewed', active: true, ...extra,
+    id, topic_id: 'ang-signals', level: 'Mid', type, prompt: 'Pregunta ___', code: null, correct: 'Bien', wrong: ['Mal 1', 'Mal 2'],
+    explanation: 'Porque sí', say_en: null, say_es: null, status: 'reviewed', active: true, ...extra,
   };
 }
 
@@ -14,10 +14,9 @@ const answer = (s: LessonState, correct: boolean) =>
   lessonReducer(lessonReducer(s, { type: 'select', index: pick(s, correct) }), { type: 'check' });
 
 describe('lessonReducer', () => {
-  it('pone las preguntas cerradas primero y la abierta al final', () => {
-    const s = initLesson([q('a', 'open', { keys: 'k' }), q('b', 'mc'), q('c', 'fill')]);
-    expect(s.queue.at(-1)!.id).toBe('a');
-    expect(s.closedCount).toBe(2);
+  it('incluye todas las preguntas, barajadas', () => {
+    const s = initLesson([q('a', 'mc'), q('b', 'fill'), q('c', 'order', { correct: 'x | y' })]);
+    expect(s.queue.map((x) => x.id).sort()).toEqual(['a', 'b', 'c']);
     expect(s.total).toBe(3);
   });
 
@@ -82,11 +81,9 @@ describe('lessonReducer', () => {
     expect(accuracy(s)).toBe(75);
   });
 
-  it('pregunta abierta: suma la XP que indique la corrección', () => {
-    let s = initLesson([q('a', 'open', { keys: 'k' })]);
-    s = lessonReducer(s, { type: 'openResult', pass: true, xp: 16, title: '¡Buena respuesta!' });
-    expect(s.xp).toBe(16);
-    s = lessonReducer(s, { type: 'next' });
+  it('termina al responder bien la última pregunta', () => {
+    let s = initLesson([q('a', 'mc')]);
+    s = lessonReducer(answer(s, true), { type: 'next' });
     expect(s.phase).toBe('result');
   });
 });

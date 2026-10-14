@@ -1,8 +1,8 @@
 # mockinter.dev
 
-Lecciones de 5 minutos para preparar entrevistas técnicas (Angular, React, Cloud/DevOps y Backend Java/Spring), con rachas, XP, vidas, corrección de respuestas abiertas con IA y un panel de admin para mantener las preguntas.
+Lecciones tipo test de 5 minutos para preparar entrevistas técnicas (Angular, React, Cloud/DevOps y Backend Java/Spring), con preguntas de código, rachas, XP, vidas y un panel de admin para mantener las preguntas. Sin coste por uso: no hay IA ni APIs de pago.
 
-**Stack:** React 19 + TypeScript · Vite · React Router · TanStack Query · Supabase (Postgres, Auth, Edge Functions) · API de Claude · Vercel.
+**Stack:** React 19 + TypeScript · Vite · React Router · TanStack Query · Supabase (Postgres y Auth) · Vercel.
 
 > La primera versión del frontend se hizo en Angular; sigue en el historial de git (primeros commits).
 
@@ -14,9 +14,8 @@ Lecciones de 5 minutos para preparar entrevistas técnicas (Angular, React, Clou
 Usuario ──► App React (Vercel) ──► Supabase
                                       ├─ Auth (email/contraseña, Google)
                                       ├─ Postgres con Row Level Security
-                                      │    topics, questions, profiles, progress,
-                                      │    wrong_answers, reports, grading_usage
-                                      └─ Edge Function "grade" ──► API de Claude
+                                           topics, questions, profiles, progress,
+                                           wrong_answers, reports
 ```
 
 - **Las preguntas viven en la base de datos.** Si corriges una desde el panel de admin, los usuarios ven el cambio al instante, sin volver a desplegar.
@@ -27,19 +26,19 @@ Usuario ──► App React (Vercel) ──► Supabase
 
 ## Puesta en marcha (una sola vez)
 
-Necesitas: Node 22.12 o superior, Python 3, y cuentas en GitHub, [Supabase](https://supabase.com), [Vercel](https://vercel.com) y la [consola de Anthropic](https://console.anthropic.com).
+Necesitas: Node 22.12 o superior, Python 3, y cuentas en GitHub, [Supabase](https://supabase.com) y [Vercel](https://vercel.com).
 
 ### 1. Base de datos en Supabase
 
 1. Crea un proyecto en Supabase. Elige una **región de la UE** (Frankfurt o París), porque tus usuarios están en España.
-2. Abre **SQL Editor** y ejecuta, en orden, cada archivo de `supabase/migrations/` (primero `20261013000000_init.sql`, después `20261013170000_spanish_variants.sql`).
+2. Abre **SQL Editor** y ejecuta, en orden de nombre, cada archivo de `supabase/migrations/`.
 3. Genera la carga de preguntas desde el Excel y ejecútala también en el SQL Editor:
    ```bash
    pip install openpyxl
    npm run import -- ruta/a/Temario_mockinter.xlsx      # crea supabase/seed.sql
    ```
    Copia el contenido de `supabase/seed.sql` en el SQL Editor y ejecútalo.
-   Puedes volver a ejecutar `seed.sql` cuando quieras: no duplica preguntas ni pisa lo que hayas editado desde el panel; solo rellena lo que falte (por ejemplo, el contenido en español).
+   Puedes volver a ejecutar `seed.sql` cuando quieras: no duplica preguntas ni pisa lo que hayas editado desde el panel.
 
 ### 2. Autenticación
 
@@ -64,21 +63,7 @@ where id = (select id from auth.users where email = 'TU-EMAIL@ejemplo.com');
 
 Al recargar la app verás un escudo junto a tu perfil que lleva al panel de admin (`/admin`).
 
-### 4. Función de corrección con IA
-
-1. Crea una clave en la consola de Anthropic y **pon un límite de gasto mensual** en Billing.
-2. Instala la [CLI de Supabase](https://supabase.com/docs/guides/cli) y despliega la función:
-   ```bash
-   supabase login
-   supabase link --project-ref TU_PROJECT_REF
-   supabase secrets set ANTHROPIC_API_KEY=sk-ant-...
-   supabase secrets set DAILY_GRADING_LIMIT=15          # opcional: correcciones por usuario y día
-   supabase secrets set ANTHROPIC_MODEL=claude-haiku-5-5 # opcional: el modelo más barato es suficiente
-   supabase functions deploy grade
-   ```
-La clave nunca llega al navegador. Si la función falla o el usuario agota su límite diario, la app muestra la respuesta modelo para que se autoevalúe.
-
-### 5. Conecta la app con Supabase
+### 4. Conecta la app con Supabase
 
 Copia `.env.example` como `.env` y rellénalo con los datos de **Project Settings → API**:
 
@@ -95,7 +80,7 @@ npm install
 npm run dev        # http://localhost:5173
 ```
 
-### 6. Publica en internet
+### 5. Publica en internet
 
 1. Sube el proyecto a GitHub:
    ```bash
@@ -121,7 +106,7 @@ A partir de aquí, cada `git push` a `main` despliega solo, y cada pull request 
 
 En **Admin → Preguntas** puedes filtrar por puesto, tema, nivel o estado, **ocultar o mostrar** cualquier pregunta con un interruptor, y crear preguntas nuevas. El ID se asigna solo.
 
-**Cambios masivos desde el Excel:** edita el Excel, ejecuta `npm run import -- Temario_mockinter.xlsx` y ejecuta el `seed.sql` resultante. Por defecto **no** sobrescribe las preguntas que ya existen, para no pisar lo que hayas cambiado desde el panel. Con `--overwrite`, el Excel manda.
+**Cambios masivos desde el Excel:** edita el Excel, ejecuta `npm run import -- Temario_mockinter.xlsx` y ejecuta el `seed.sql` resultante. Por defecto **no** sobrescribe las preguntas que ya existen, para no pisar lo que hayas cambiado desde el panel. Con `--overwrite`, el Excel manda. Con `--prune`, además se borran los temas y preguntas que ya no estén en el Excel (útil al reorganizar el temario).
 
 ---
 
@@ -129,7 +114,6 @@ En **Admin → Preguntas** puedes filtrar por puesto, tema, nivel o estado, **oc
 
 - [ ] Completa los `[CORCHETES]` de `src/pages/Privacy.tsx` (tu nombre, fecha, proveedores y regiones).
 - [ ] SMTP propio configurado en Supabase.
-- [ ] Límite de gasto en la consola de Anthropic y `DAILY_GRADING_LIMIT` ajustado.
 - [ ] Revisa las preguntas (Estado = Revisada) o, como mínimo, las de los temas que vayas a anunciar primero.
 - [ ] Prueba el flujo completo con una cuenta normal: registro, onboarding, lección, reporte y borrar cuenta.
 
@@ -151,13 +135,13 @@ src/
   App.tsx      rutas (React Router) con carga diferida
   auth/        AuthProvider (contexto de sesión y perfil) y rutas protegidas
   lib/         cliente de Supabase, funciones de la API, modelos y utilidades
+               progress.ts: escalones Junior/Mid/Senior de cada tema (lógica pura, con tests)
   pages/       login, onboarding, inicio, lección, ajustes, privacidad
                lessonReducer.ts: la lógica de la lección como reducer puro, con sus tests
   admin/       panel: reportes, lista de preguntas, editor
-  components/  logo, diálogo de reporte, texto con `código`
+  components/  logo, diálogo de reporte, texto con `código`, bloque de código con resaltado
 supabase/
   migrations/  esquema, reglas de acceso (RLS) y funciones SQL
-  functions/   grade: corrección con la API de Claude
   seed.sql     preguntas generadas desde el Excel
 scripts/
   import_xlsx.py  Excel → seed.sql
@@ -174,8 +158,11 @@ scripts/
 
 ## Cómo se decide qué ve cada usuario
 
-- **Onboarding:** puesto (Angular, React, Cloud/DevOps, Backend), nivel (Junior, Mid, Senior) e idioma de la entrevista. Se puede cambiar desde Ajustes.
-- **Entrevista en español:** se oculta el bloque de inglés, las respuestas abiertas se escriben y corrigen en español, y las preguntas con frases en inglés usan su variante española (columnas *Variante ES* del Excel o sección plegable del editor).
-- **Camino de lecciones:** "Presentación y STAR", luego los 6 temas del puesto, después "Preguntas difíciles" e "Inglés de entrevista". Este último se oculta si la entrevista es en español.
-- **Cada lección:** las preguntas activas de ese tema y nivel. Primero las cerradas, barajadas, y la abierta al final. Cada fallo cuesta una vida y la pregunta vuelve al final de la cola.
+- **Onboarding:** puesto (Angular, React, Cloud/DevOps, Backend), nivel por el que empieza (Junior, Mid, Senior) e idioma de la entrevista. Se puede cambiar desde Ajustes.
+- **Camino de lecciones:** "Presentación y STAR", los temas del puesto, los bloques compartidos y, al final, "Preguntas difíciles" e "Inglés de entrevista" (este último se oculta si la entrevista es en español).
+  - Angular y React suman el bloque **Frontend** (CSS/BEM/Flex/Grid, TypeScript, arquitectura con EventBus y CommandBus, patrones y clean code).
+  - Todos los puestos técnicos suman el bloque **Desarrollo** (Git y Docker).
+- **Escalones dentro de cada tema:** Junior → Mid → Senior. El nivel del onboarding marca el escalón de inicio; ese y los anteriores están abiertos, y los superiores se desbloquean al completar el anterior. La lógica está en `src/lib/progress.ts`.
+- **Cada lección:** las preguntas activas de ese tema y escalón, barajadas. Muchas llevan un fragmento de código (¿qué imprime?, ¿dónde está el bug?, ¿qué hace?). Cada fallo cuesta una vida y la pregunta vuelve al final de la cola.
+- **Entrevista en español:** se oculta el bloque de inglés y las preguntas con frases en inglés usan su variante española (columnas *Variante ES* del Excel o sección plegable del editor).
 - **XP y racha:** se guardan en el servidor al terminar la lección, con la fecha de Madrid y un tope por lección.

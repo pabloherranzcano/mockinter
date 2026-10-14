@@ -4,10 +4,11 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { fetchAllTopics, fetchQuestion, fetchReports, nextQuestionId, saveQuestion, setReportStatus } from '../lib/api';
 import { TYPE_LABELS, type Level, type QStatus, type QType, type Question } from '../lib/models';
 import { reasonLabel } from './AdminReports';
+import { CodeBlock } from '../components/CodeBlock';
 
 const blank = (): Question => ({
-  id: '', topic_id: '', level: 'Mid', type: 'mc', prompt: '', prompt_en: null, correct: '', wrong: ['', '', ''],
-  explanation: '', say_en: null, say_es: null, keys: null, model_en: null, model_es: null, status: 'reviewed', active: true,
+  id: '', topic_id: '', level: 'Mid', type: 'mc', prompt: '', code: null, correct: '', wrong: ['', '', ''],
+  explanation: '', say_en: null, say_es: null, status: 'reviewed', active: true,
 });
 
 /** Comprueba que la pregunta está completa. Devuelve el problema o null. */
@@ -20,7 +21,6 @@ export function validateQuestion(q: Question, orderText: string): string | null 
     if (!q.wrong.some((w) => w.trim())) return 'Añade al menos una opción incorrecta.';
   }
   if (q.type === 'order' && orderText.split('\n').filter((l) => l.trim()).length < 2) return 'Pon al menos dos piezas, una por línea.';
-  if (q.type === 'open' && !q.keys?.trim() && !q.model_en?.trim()) return 'Añade puntos clave o una respuesta modelo.';
   return null;
 }
 
@@ -63,7 +63,8 @@ export default function QuestionEditor() {
         es_wrong: q.es_wrong?.map((w) => w.trim()).filter(Boolean).length ? q.es_wrong.map((w) => w.trim()).filter(Boolean) : null,
         correct: q.type === 'order'
           ? orderText.split('\n').map((l) => l.trim()).filter(Boolean).join(' | ')
-          : q.type === 'open' ? null : q.correct?.trim() ?? null,
+          : q.correct?.trim() ?? null,
+        code: q.code?.replace(/\s+$/, '') || null,
       };
       if (isNew) row.id = await nextQuestionId(row.topic_id, row.level as Level);
       return saveQuestion(row, isNew);
@@ -138,27 +139,17 @@ export default function QuestionEditor() {
             <textarea id="ed-prompt" value={q.prompt} onChange={(e) => patch({ prompt: e.target.value })} style={{ minHeight: 80 }} />
           </label>
 
+          <label className="field">Código (opcional: se muestra como bloque encima de las opciones)
+            <textarea id="ed-code" className="code-input" value={v(q.code)} spellCheck={false}
+              onChange={(e) => patch({ code: e.target.value || null })} style={{ minHeight: 120 }}
+              placeholder={'const total = computed(() => price() * qty());'} />
+          </label>
+          {q.code && <CodeBlock code={q.code} />}
+
           {q.type === 'order' && (
             <label className="field">Piezas en el orden correcto (una por línea)
               <textarea id="ed-items" value={orderText} onChange={(e) => { setOrderText(e.target.value); setSaved(false); }} style={{ minHeight: 140 }} />
             </label>
-          )}
-
-          {q.type === 'open' && (
-            <>
-              <label className="field">Pregunta original en inglés
-                <input id="ed-prompt-en" type="text" value={v(q.prompt_en)} onChange={(e) => patch({ prompt_en: e.target.value })} />
-              </label>
-              <label className="field">Puntos clave (guían la corrección automática)
-                <textarea id="ed-keys" value={v(q.keys)} onChange={(e) => patch({ keys: e.target.value })} />
-              </label>
-              <label className="field">Respuesta modelo en inglés
-                <textarea id="ed-model-en" value={v(q.model_en)} onChange={(e) => patch({ model_en: e.target.value })} style={{ minHeight: 140 }} />
-              </label>
-              <label className="field">Respuesta modelo en español (para entrevistas en español)
-                <textarea id="ed-model-es" value={v(q.model_es)} onChange={(e) => patch({ model_es: e.target.value })} style={{ minHeight: 140 }} />
-              </label>
-            </>
           )}
 
           {(q.type === 'mc' || q.type === 'fill') && (
@@ -183,7 +174,7 @@ export default function QuestionEditor() {
             </>
           )}
 
-          {q.type !== 'open' && (
+          {(
             <>
               <label className="field">Explicación (se muestra tras responder)
                 <textarea id="ed-expl" value={v(q.explanation)} onChange={(e) => patch({ explanation: e.target.value })} />
@@ -199,7 +190,7 @@ export default function QuestionEditor() {
             </>
           )}
 
-          {q.type !== 'open' && q.type !== 'order' && (
+          {q.type !== 'order' && (
             <details className="stack" open={!!(q.es_prompt || q.es_correct || q.es_wrong?.length || q.es_explanation)}>
               <summary style={{ cursor: 'pointer', fontWeight: 700 }}>Variante para entrevistas en español (opcional)</summary>
               <p className="muted small" style={{ margin: '8px 0' }}>

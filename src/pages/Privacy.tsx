@@ -21,7 +21,6 @@ export default function Privacy() {
         <li>Tu progreso: XP, racha, lecciones completadas y preguntas falladas.</li>
         <li>Los reportes y sugerencias que envíes sobre las preguntas.</li>
       </ul>
-      <p>Las respuestas abiertas que envías para corregir se mandan a un proveedor de inteligencia artificial (Anthropic) para generar la corrección y no las guardamos.</p>
 
       <h2>Para qué los usamos</h2>
       <p>Solo para darte el servicio: guardar tu progreso, adaptar las lecciones y mejorar las preguntas. No vendemos tus datos ni los usamos para publicidad.</p>
@@ -30,7 +29,7 @@ export default function Privacy() {
       <p>La ejecución del servicio que solicitas al crear tu cuenta (art. 6.1.b RGPD).</p>
 
       <h2>Con quién se comparten</h2>
-      <p>Con los proveedores que hacen funcionar la app: Supabase (base de datos y autenticación), [PROVEEDOR DE HOSTING, p. ej. Vercel] y Anthropic (corrección de respuestas). [Indica las regiones donde alojas los datos y, si alguno está fuera del EEE, las garantías aplicables.]</p>
+      <p>Con los proveedores que hacen funcionar la app: Supabase (base de datos y autenticación) y [PROVEEDOR DE HOSTING, p. ej. Vercel]. [Indica las regiones donde alojas los datos y, si alguno está fuera del EEE, las garantías aplicables.]</p>
 
       <h2>Cuánto tiempo</h2>
       <p>Mientras tengas la cuenta. Puedes borrarla cuando quieras desde Ajustes y se eliminan tus datos.</p>

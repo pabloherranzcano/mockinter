@@ -43,8 +43,9 @@ export function App() {
           </Route>
           <Route element={<RequireOnboarded />}>
             <Route path="/" element={<Home />} />
-            <Route path="/lesson/:topicId" element={<Lesson />} />
-            <Route path="/review" element={<Lesson review />} />
+            <Route path="/leccion/:topicId/:level" element={<Lesson />} />
+            <Route path="/leccion/:topicId" element={<Lesson />} />
+            <Route path="/repaso" element={<Lesson review />} />
           </Route>
           <Route element={<RequireAdmin />}>
             <Route path="/admin" element={<AdminLayout />}>

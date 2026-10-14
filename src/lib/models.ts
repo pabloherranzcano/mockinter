@@ -1,6 +1,6 @@
 export type Level = 'Junior' | 'Mid' | 'Senior';
 export type English = 'yes' | 'no' | 'partial';
-export type QType = 'mc' | 'fill' | 'order' | 'open';
+export type QType = 'mc' | 'fill' | 'order';
 export type QStatus = 'pending' | 'reviewed' | 'discarded';
 export type ReportReason = 'wrong_answer' | 'unclear' | 'typo' | 'suggestion' | 'other';
 export type ReportStatus = 'open' | 'resolved' | 'dismissed';
@@ -36,15 +36,13 @@ export interface Question {
   level: Level;
   type: QType;
   prompt: string;
-  prompt_en: string | null;
+  /** Fragmento de código que se muestra encima de las opciones (opcional). */
+  code: string | null;
   correct: string | null;
   wrong: string[];
   explanation: string | null;
   say_en: string | null;
   say_es: string | null;
-  keys: string | null;
-  model_en: string | null;
-  model_es: string | null;
   status: QStatus;
   active: boolean;
   updated_at?: string;
@@ -68,14 +66,6 @@ export interface Report {
   questions?: Pick<Question, 'id' | 'prompt' | 'type' | 'level' | 'topic_id' | 'active'> | null;
 }
 
-export interface Grade {
-  score: number;
-  strengths: string[];
-  improve: string[];
-  language: { wrong: string; right: string }[];
-  better: string;
-}
-
 export const ROLES: { code: string; name: string; desc: string }[] = [
   { code: 'ANG', name: 'Frontend Angular', desc: 'Componentes, RxJS, signals, testing' },
   { code: 'REA', name: 'Frontend React', desc: 'Hooks, estado, rendimiento, testing' },
@@ -84,15 +74,15 @@ export const ROLES: { code: string; name: string; desc: string }[] = [
 ];
 
 export const LEVELS: { code: Level; desc: string }[] = [
-  { code: 'Junior', desc: 'Primer empleo o menos de 2 años' },
-  { code: 'Mid', desc: 'Entre 2 y 5 años de experiencia' },
-  { code: 'Senior', desc: 'Más de 5 años, decisiones técnicas' },
+  { code: 'Junior', desc: 'Primer empleo o menos de 2 años. Empiezas cada tema por lo básico.' },
+  { code: 'Mid', desc: 'Entre 2 y 5 años. Empiezas por el escalón Mid; el Junior queda abierto para repasar.' },
+  { code: 'Senior', desc: 'Más de 5 años. Vas directo a lo avanzado, con los escalones anteriores abiertos.' },
 ];
 
 export const ENGLISH_OPTIONS: { code: English; label: string; desc: string }[] = [
-  { code: 'yes', label: 'Sí, en inglés', desc: 'Respondes en inglés y practicas inglés de entrevista' },
+  { code: 'yes', label: 'Sí, en inglés', desc: 'Incluye el bloque de inglés de entrevista' },
   { code: 'partial', label: 'En parte o no lo sé', desc: 'Igual que en inglés, por si acaso' },
-  { code: 'no', label: 'No, en español', desc: 'Sin bloque de inglés; respondes en español' },
+  { code: 'no', label: 'No, en español', desc: 'Sin bloque de inglés y con las frases de ejemplo en español' },
 ];
 
 export const REASONS: { code: ReportReason; label: string }[] = [
@@ -104,5 +94,15 @@ export const REASONS: { code: ReportReason; label: string }[] = [
 ];
 
 export const TYPE_LABELS: Record<QType, string> = {
-  mc: 'Elegir respuesta', fill: 'Completar frase', order: 'Ordenar', open: 'Respuesta abierta',
+  mc: 'Elegir respuesta', fill: 'Completar frase', order: 'Ordenar',
+};
+
+/** Bloques compartidos que se añaden al camino según el puesto. */
+export const SHARED_BLOCKS: Record<string, string[]> = {
+  ANG: ['FE', 'DEV'], REA: ['FE', 'DEV'], CLD: ['DEV'], BCK: ['DEV'],
+};
+
+export const BLOCK_LABELS: Record<string, string> = {
+  ANG: 'Angular', REA: 'React', CLD: 'Cloud / DevOps', BCK: 'Backend',
+  FE: 'Frontend', DEV: 'Desarrollo', COM: 'Para cualquier puesto',
 };

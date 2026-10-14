@@ -54,7 +54,7 @@ export default function Login() {
     <main className="wrap" style={{ maxWidth: 440 }}>
       <Logo />
       <h2 style={{ fontSize: '2rem', marginTop: 28 }}>Prepara tus entrevistas técnicas, 5 minutos al día</h2>
-      <p className="muted">Lecciones cortas de Angular, React, Cloud/DevOps y Backend, con práctica de inglés y corrección de tus respuestas.</p>
+      <p className="muted">Lecciones cortas de Angular, React, Cloud/DevOps y Backend, con preguntas de código y práctica de inglés.</p>
 
       <div className="card stack" style={{ marginTop: 20 }}>
         <div className="row">

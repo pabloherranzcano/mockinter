@@ -20,7 +20,7 @@ export default function Onboarding() {
 
   const steps: { title: string; options: Choice[]; value: string | null; set: (v: string) => void }[] = [
     { title: '¿Qué puesto buscas?', options: ROLES.map((r) => ({ code: r.code, title: r.name, desc: r.desc })), value: role, set: setRole },
-    { title: '¿Qué nivel tiene el puesto?', options: LEVELS.map((l) => ({ code: l.code, title: l.code, desc: l.desc })), value: level, set: (v) => setLevel(v as Level) },
+    { title: '¿Por qué nivel empiezas?', options: LEVELS.map((l) => ({ code: l.code, title: l.code, desc: l.desc })), value: level, set: (v) => setLevel(v as Level) },
     { title: '¿La entrevista será en inglés?', options: ENGLISH_OPTIONS.map((e) => ({ code: e.code, title: e.label, desc: e.desc })), value: english, set: (v) => setEnglish(v as English) },
   ];
   const current = steps[step];

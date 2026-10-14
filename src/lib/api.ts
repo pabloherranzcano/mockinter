@@ -1,23 +1,37 @@
 import { supabase } from './supabase';
 import { shuffle } from './utils';
-import type { Grade, Level, Profile, Question, Report, ReportReason, ReportStatus, Topic } from './models';
+import { SHARED_BLOCKS, type Level, type Profile, type Question, type Report, type ReportReason, type ReportStatus, type Topic } from './models';
+import type { LevelStars } from './progress';
 
-export interface PathTopic extends Topic { stars: number; }
+export interface PathTopic extends Topic {
+  /** Estrellas por escalón (nivel) del tema. */
+  stars: LevelStars;
+}
 
-// ---------- Usuario ----------
-
-/** Temas del camino: presentación, los del puesto, preguntas difíciles y (si aplica) inglés. */
+/**
+ * Temas del camino según el puesto: presentación, los del puesto, los bloques compartidos
+ * (frontend, desarrollo), preguntas difíciles y, si la entrevista es en inglés, el bloque de inglés.
+ */
 export async function fetchPathTopics(p: Profile): Promise<PathTopic[]> {
+  const role = p.target_role ?? '';
+  const shared = SHARED_BLOCKS[role] ?? [];
   const [{ data: topics, error }, { data: prog }] = await Promise.all([
-    supabase.from('topics').select('*').in('role', [p.target_role, 'COM']).eq('active', true),
-    supabase.from('progress').select('topic_id, best_stars').eq('level', p.level),
+    supabase.from('topics').select('*').in('role', [role, ...shared, 'COM']).eq('active', true),
+    supabase.from('progress').select('topic_id, level, best_stars'),
   ]);
   if (error) throw error;
-  const stars = new Map((prog ?? []).map((r) => [r.topic_id as string, r.best_stars as number]));
+  const stars = new Map<string, LevelStars>();
+  for (const r of prog ?? []) {
+    const m = stars.get(r.topic_id) ?? {};
+    m[r.level as Level] = r.best_stars as number;
+    stars.set(r.topic_id, m);
+  }
   const all = (topics as Topic[]).filter((t) => !(t.is_english && p.english === 'no'));
-  const common = all.filter((t) => t.role === 'COM').sort((a, b) => a.position - b.position);
-  const own = all.filter((t) => t.role !== 'COM').sort((a, b) => a.position - b.position);
-  return [...common.slice(0, 1), ...own, ...common.slice(1)].map((t) => ({ ...t, stars: stars.get(t.id) ?? 0 }));
+  const byPos = (a: Topic, b: Topic) => a.position - b.position;
+  const block = (code: string) => all.filter((t) => t.role === code).sort(byPos);
+  const common = block('COM');
+  const ordered = [common[0], ...block(role), ...shared.flatMap(block), ...common.slice(1)].filter(Boolean);
+  return ordered.map((t) => ({ ...t, stars: stars.get(t.id) ?? {} }));
 }
 
 export async function fetchTopic(id: string): Promise<Topic | null> {
@@ -41,7 +55,7 @@ export async function fetchReviewQuestions(lang: 'en' | 'es', limit = 8): Promis
   const qs = (data ?? [])
     .map((r) => (r as unknown as Row).questions)
     .filter((q): q is Question & { topics?: { is_english: boolean } | null } =>
-      !!q && q.active && q.type !== 'open' && !(lang === 'es' && q.topics?.is_english))
+      !!q && q.active && !(lang === 'es' && q.topics?.is_english))
     .map(({ topics: _t, ...q }) => q as Question);
   return shuffle(qs).slice(0, limit);
 }
@@ -70,18 +84,6 @@ export async function sendReport(userId: string, questionId: string, reason: Rep
     question_id: questionId, reason, comment: comment.trim() || null, user_id: userId,
   });
   if (error) throw error;
-}
-
-/** Devuelve la corrección o un código de error ('daily_limit', 'ai_unavailable'...). */
-export async function gradeAnswer(questionId: string, answer: string, lang: 'en' | 'es'): Promise<Grade | { error: string }> {
-  const { data, error } = await supabase.functions.invoke('grade', { body: { questionId, answer, lang } });
-  if (error) {
-    try {
-      const body = await (error as { context?: Response }).context?.json();
-      return { error: body?.error ?? 'ai_unavailable' };
-    } catch { return { error: 'ai_unavailable' }; }
-  }
-  return data as Grade;
 }
 
 // ---------- Admin ----------
