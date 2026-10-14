@@ -42,7 +42,7 @@ export default function Settings() {
       <section className="card stack" style={{ marginTop: 18 }}>
         <p className="eyebrow" style={{ margin: 0 }}>Tu preparación</p>
         <p style={{ margin: 0 }}>{p?.onboarded ? <><strong>{roleName}</strong> · {p.level} · {englishLabel}</> : 'Aún no has elegido puesto y nivel.'}</p>
-        <Link className="btn ghost sm" to="/start" style={{ justifySelf: 'start' }}>Cambiar puesto, nivel o idioma</Link>
+        <Link className="btn ghost sm" to="/onboarding" style={{ justifySelf: 'start' }}>Cambiar puesto, nivel o idioma</Link>
       </section>
 
       <section className="card stack" style={{ marginTop: 14 }}>

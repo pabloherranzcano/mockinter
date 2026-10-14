@@ -18,7 +18,7 @@ export function RequireOnboarded() {
   if (!ready) return <Loading />;
   if (!session) return <Navigate to="/login" replace />;
   if (!profile) return <Loading />;
-  return profile.onboarded ? <Outlet /> : <Navigate to="/start" replace />;
+  return profile.onboarded ? <Outlet /> : <Navigate to="/onboarding" replace />;
 }
 
 /** Solo para quien no ha iniciado sesión (pantalla de login). */

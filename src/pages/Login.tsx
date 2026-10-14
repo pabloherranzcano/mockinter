@@ -31,12 +31,12 @@ export default function Login() {
     try {
       if (mode === 'in') {
         const p = await auth.signIn(email, password);
-        navigate(p?.onboarded ? '/' : '/start', { replace: true });
+        navigate(p?.onboarded ? '/' : '/onboarding', { replace: true });
       } else if (mode === 'up') {
         if (password.length < 8) throw new Error('La contraseña necesita al menos 8 caracteres.');
         const { needsConfirmation } = await auth.signUp(email, password);
         if (needsConfirmation) setNotice('Te hemos enviado un email. Confirma tu cuenta desde el enlace y vuelve a entrar.');
-        else navigate('/start', { replace: true });
+        else navigate('/onboarding', { replace: true });
       } else {
         await auth.resetPassword(email);
         setNotice('Si el email existe, te llegará un enlace para cambiar la contraseña.');

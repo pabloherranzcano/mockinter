@@ -21,7 +21,7 @@ export default function Lesson({ review = false }: { review?: boolean }) {
   const lang: 'en' | 'es' = profile?.english === 'no' ? 'es' : 'en';
   const level: Level | null = LEVEL_ORDER.includes(levelParam as Level) ? (levelParam as Level) : profile?.level ?? null;
 
-  useEffect(() => { if (!profile?.level) navigate('/start', { replace: true }); }, [profile, navigate]);
+  useEffect(() => { if (!profile?.level) navigate('/onboarding', { replace: true }); }, [profile, navigate]);
 
   const topicQ = useQuery({ queryKey: ['topic', topicId], queryFn: () => fetchTopic(topicId), enabled: !review && !!topicId });
   const questionsQ = useQuery({
